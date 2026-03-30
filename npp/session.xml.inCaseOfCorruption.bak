@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="1">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1223" startPos="514" endPos="514" selMode="0" offset="0" wrapCount="1" lang="Python" encoding="-1" userReadOnly="no" filename="D:\Pycharm_Projects\PyFyve\user_workspace.py" backupFilePath="" originalFileLastModifTimestamp="1171788444" originalFileLastModifTimestampHigh="31242745" tabColourId="-1" RTL="no" tabPinned="no" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="1055" startPos="319" endPos="319" selMode="0" offset="0" wrapCount="1" lang="Python" encoding="-1" userReadOnly="no" filename="D:\Downloads\PyFyve_V1\user_workspace.py" backupFilePath="" originalFileLastModifTimestamp="-1433265663" originalFileLastModifTimestampHigh="31242772" tabColourId="-1" RTL="no" tabPinned="no" mapFirstVisibleDisplayLine="-1" mapFirstVisibleDocLine="-1" mapLastVisibleDocLine="-1" mapNbLine="-1" mapHigherPos="-1" mapWidth="-1" mapHeight="-1" mapKByteInDoc="512" mapWrapIndentMode="-1" mapIsWrap="no" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>

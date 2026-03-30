@@ -1,0 +1,14 @@
+{
+    "id": 2.5,
+    "author": "your_github_username",
+    "topic": "String Slicing",
+    "text": "**DEFINITION:**\nSlicing allows you to grab a specific chunk of a string.\n\n**SYNTAX:**\nstring[start:stop]\n\n**RULES:**\n1. `start` is included.\n2. `stop` is EXCLUDED (it stops *before* this index).\n\n**EXAMPLE:**\nword = 'Python'\nprint(word[0:2]) # Prints 'Py'",
+    "common_errors": "Thinking the `stop` index is included. `word[0:2]` gives indices 0 and 1, NOT 2.",
+    "task": "Create a variable `word = 'Galaxy'`, then use slicing to print just 'Gal'.",
+    "validation": [
+        {
+            "type": "output_check",
+            "expected_output": "Gal"
+        }
+    ]
+}

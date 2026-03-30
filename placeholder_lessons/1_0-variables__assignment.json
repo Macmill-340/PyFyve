@@ -1,0 +1,17 @@
+{
+    "id": 1,
+    "author": "your_github_username",
+    "topic": "Variables & Assignment",
+    "text": "\n**DEFINITION:**\nA variable is like a labeled box where you store data. You give the box a name, and you put a value inside it.\n\n**SYNTAX:**\nvariable_name = value\n\n**RULES:**\n1. Variable names cannot have spaces (use `snake_case` like `my_score`).\n2. The `=` symbol is the Assignment Operator. It puts the value on the right into the variable on the left.\n\n**EXAMPLE:**\nplayer_name = \"Mario\"\nscore = 100\n        ",
+    "common_errors": "Writing `100 = score`. The variable name MUST be on the left side.",
+    "task": "Create variables named 'health' and 'stamina' and assign them the values 100 and 90 respectively.",
+    "validation": [
+        {
+            "type": "variable_check",
+            "var_info": {
+                "health": 100,
+                "stamina": 90
+            }
+        }
+    ]
+}
