@@ -1,0 +1,14 @@
+{
+    "id": 3,
+    "author": "your_github_username",
+    "topic": "The Print Function",
+    "text": "\n**DEFINITION:**\nThe `print()` function takes data and displays it on the screen (the console). It is your way of making the program talk to the user.\n\n**SYNTAX:**\nprint(variable_name)\nprint(\"Some text here\")\n\n**EXAMPLE:**\nname = \"Sam\"\nprint(name)\n        ",
+    "common_errors": "Missing parentheses: `print 'Hello'` is invalid in Python 3. You must use `print('Hello')`.",
+    "task": "Write code to print the string 'Python is fun'.",
+    "validation": [
+        {
+            "type": "output_check",
+            "expected_output": "Python is fun"
+        }
+    ]
+}
