@@ -125,9 +125,11 @@ Each lesson is a JSON file in `lessons/`:
 **Steps:**
 
 1. Clone the repo
-2. Run `start.bat` — this sets up the virtual environment and installs dependencies
-3. On first run, `setup.py` checks that the `fyve-ai` model is available in Ollama
-4. To install the model: `ollama create fyve-ai -f Modelfile` (Modelfile and GGUF download link in releases)
+2. Download the fine-tuned model (`fyve-ai.gguf`) from Hugging Face: [Macmill/qwen-finetune-v3](https://huggingface.co/Macmill/qwen-finetune-v3)
+3. Place the downloaded `fyve-ai.gguf` file inside the `Fyve AI/` folder in this project.
+4. Open a terminal in the `Fyve AI/` folder and build the model in Ollama by running:
+   `ollama create fyve-ai -f Modelfile`
+5. Go back to the main project folder and run `start.bat` — this sets up the virtual environment, installs dependencies, and launches the app.
 
 ---
 
