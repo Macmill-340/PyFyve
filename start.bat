@@ -25,18 +25,19 @@ py -3.13 --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ !! ] Python 3.13 not found. Installing...
     winget install --id 9NQ7512CXL7T --source msstore --accept-package-agreements --accept-source-agreements
-    py install 3.13
-    timeout /t 3 /nobreak >nul
-    for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "syspath=%%B"
-    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "userpath=%%B"
-    set "PATH=%PY_BIN%;!syspath!;!userpath!"
-)
-
-py -3.13 --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ EX ] Python 3.13 still not found. Add this to PATH manually:
-    echo        %PY_BIN%
-    pause & exit /b 1
+    if %errorlevel% neq 0 (
+        echo [ EX ] Automatic installation failed.
+        echo        Please install Python 3.13 manually from https://python.org
+        echo        Make sure to check "Add Python to PATH" during installation.
+        pause & exit /b 1
+    )
+    echo.
+    echo [ !! ] Python was just installed.
+    echo        Windows requires a restart of this terminal to recognise it.
+    echo.
+    echo        Please CLOSE this window and run start.bat again.
+    echo.
+    pause & exit /b 0
 )
 echo [ OK ] Python 3.13 is active.
 
@@ -52,22 +53,37 @@ if not exist ".venv\Scripts\activate" (
     echo [ OK ] Environment created.
 )
 
-:: 4. ACTIVATE AND INSTALL DEPENDENCIES
+:: 4. ACTIVATE
 call "%~dp0.venv\Scripts\activate"
 
-if not exist ".venv\.installed" (
-    echo [ .. ] Installing required libraries...
-    python -m pip install --upgrade pip --quiet
-    if exist "requirements.txt" (
+:: 5. INSTALL / UPDATE DEPENDENCIES (checksum-aware — reinstalls if requirements.txt changes)
+if exist "requirements.txt" (
+    set "REQ_HASH_FILE=.venv\.req_hash"
+    set "CURRENT_HASH="
+    for /f "delims=" %%H in ('powershell -NoProfile -Command "Get-FileHash requirements.txt -Algorithm MD5 | Select-Object -ExpandProperty Hash"') do set "CURRENT_HASH=%%H"
+
+    set "STORED_HASH="
+    if exist "!REQ_HASH_FILE!" (
+        set /p STORED_HASH=<"!REQ_HASH_FILE!"
+    )
+
+    if /i "!CURRENT_HASH!" neq "!STORED_HASH!" (
+        echo [ .. ] Installing/updating required libraries...
         python -m pip install -r requirements.txt --quiet
-        echo done>".venv\.installed"
+        if errorlevel 1 (
+            echo [ EX ] Failed to install libraries. Check your internet connection.
+            pause & exit /b 1
+        )
+        echo !CURRENT_HASH!>"!REQ_HASH_FILE!"
         echo [ OK ] Libraries installed.
+    ) else (
+        echo [ OK ] Libraries are up to date.
     )
 ) else (
-    echo [ OK ] Libraries are up to date.
+    echo [ !! ] requirements.txt not found. Skipping library install.
 )
 
-:: 5. LAUNCH
+:: 6. LAUNCH
 echo [ .. ] Starting AI Setup Engine...
 python setup.py
 
