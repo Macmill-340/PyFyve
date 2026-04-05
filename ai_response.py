@@ -23,7 +23,7 @@ def format_for_app_display(text):
 
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
     system_prompt = """You are a Socratic Python Tutor. You analyse a student's Python error and output ONLY a JSON object with exactly two keys:
-1. "reasoning": Your internal analysis - identify the SPECIFIC variable, expression, or line causing the error by name.
+1. "reasoning": First, explicitly quote the exact line of code that failed. Then, identify what is structurally missing or wrong with that specific line.
 2. "hint": Exactly 3 sentences separated by newline characters (\\n).
 
 The 3 sentences must follow this exact structure:
@@ -50,7 +50,7 @@ Rules:
         SyntaxError: expected ':' at line 2
         {{"reasoning": "The if statement on line 2 is missing a colon after the condition. I will name the construct, explain the punctuation rule, and direct the student to think about what Python requires after every control flow header — not state the character.", "hint": "Your if statement on line 2 does not end with the required punctuation after the condition 'x > 5'.\\nIn Python, every control flow header — if, for, while, and def — must end with a specific punctuation mark to signal the start of the indented block.\\nThink about what punctuation character Python requires at the end of every control flow header."}}
 
-        Example 2 (Extra Closing Parenthesis — remove, not add):
+        Example 2a (Extra Closing Parenthesis — remove, not add):
         Task:
         Print a simple message.
         Code:
@@ -58,7 +58,16 @@ Rules:
         Error:
         SyntaxError: unmatched ')' at line 1
         {{"reasoning": "There is one extra closing parenthesis at the end of line 1. The print call is already correctly closed. I must guide toward counting and removing — NOT adding anything.", "hint": "Your print statement on line 1 has one more closing parenthesis than it has opening ones.\\nIn Python, every opening parenthesis must be matched by exactly one closing parenthesis — no more, no less.\\nConsider how many opening parentheses appear in that line and whether the number of closing ones matches exactly."}}
-
+        
+        Example 2b (Stray Parenthesis in Assignment):
+        Task:
+        Assign 90 to the variable stamina.
+        Code:
+        stamina = 90)
+        Error:
+        SyntaxError: unmatched ')' at line 1
+        {{"reasoning": "The assignment 'stamina = 90)' ends with a closing parenthesis, but there is no opening parenthesis on the line. I must point out the stray character without claiming assignments can't have parentheses.", "hint": "Your assignment on line 1 ends with a closing parenthesis ')', but there is no opening parenthesis to match it.\\nIn Python, a closing parenthesis is only valid if it follows an earlier opening parenthesis.\\nLook closely at the end of the line and remove the stray character that does not belong there."}}
+        
         Example 3 (AttributeError string .append — guide toward +, not list):
         Task:
         Create a string 'Hello' and try to append ' World' using .append().
@@ -153,6 +162,7 @@ Rules:
                 model="fyve-ai",
                 messages=messages,
                 format="json",
+                options={"temperature": 0.0},
                 think=False
             )
             full_data = json.loads(response['message']['content'])
