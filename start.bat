@@ -4,71 +4,76 @@ cd /d "%~dp0"
 color 0A
 title PyFyve
 
-:: 1. ELEVATE TO ADMIN
-net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo [ -- ] Requesting Admin Privileges...
-    powershell -Command "Start-Process -FilePath '%0' -Verb RunAs -WorkingDirectory '%~dp0'"
-    exit /b
-)
-
 echo ===================================================
 echo        PyFyve Initializing...
 echo ===================================================
 
-:: 2. PYTHON 3.13 CHECK
-echo [ .. ] Verifying Python 3.13 Environment...
-set "PY_BIN=%LOCALAPPDATA%\Python\bin"
-set "PATH=%PY_BIN%;%PATH%"
+:: 1. PYTHON CHECK & INSTALL (Using the new Python Install Manager)
+echo [ .. ] Verifying Python Environment...
+set "PY_CMD="
 
-py -3.13 --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ !! ] Python 3.13 not found. Installing...
+python --version 2>nul | find "3.13" >nul
+if %errorlevel% equ 0 set "PY_CMD=python"
+
+if not defined PY_CMD (
+    py -3.13 --version >nul 2>&1
+    if !errorlevel! equ 0 set "PY_CMD=py -3.13"
+)
+
+if not defined PY_CMD (
+    echo [ !! ] Python not found. Installing Python Install Manager...
+    :: Reverted to the official MS Store Python Install Manager ID
     winget install --id 9NQ7512CXL7T --source msstore --accept-package-agreements --accept-source-agreements
-    if %errorlevel% neq 0 (
-        echo [ EX ] Automatic installation failed.
-        echo        Please install Python 3.13 manually from https://python.org
-        echo        Make sure to check "Add Python to PATH" during installation.
+    if !errorlevel! neq 0 (
+        echo [ EX ] Automatic installation failed. Please install manually.
         pause & exit /b 1
     )
-    echo.
-    echo [ !! ] Python was just installed.
-    echo        Windows requires a restart of this terminal to recognise it.
-    echo.
-    echo        Please CLOSE this window and run start.bat again.
-    echo.
-    pause & exit /b 0
-)
-echo [ OK ] Python 3.13 is active.
+    echo [ OK ] Python Install Manager installed.
 
-:: 3. VIRTUAL ENVIRONMENT
+    :: Dynamically refresh PATH from Windows Registry to AVOID RESTARTING!
+    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
+    for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
+    set "PATH=!SYS_PATH!;!USER_PATH!"
+
+    :: Explicitly add the WindowsApps directory where the new manager places its execution aliases
+    set "PATH=%LOCALAPPDATA%\Microsoft\WindowsApps;!PATH!"
+
+    set "PY_CMD=py -3.13"
+)
+
+%PY_CMD% --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo[ EX ] Python was installed but the system cannot locate it. Please restart this terminal.
+    pause & exit /b 1
+)
+echo [ OK ] Python is active.
+
+:: 2. VIRTUAL ENVIRONMENT
 echo [ .. ] Verifying virtual environment...
 if not exist ".venv\Scripts\activate" (
     echo [ .. ] Creating .venv...
-    py -3.13 -m venv .venv
+    %PY_CMD% -m venv .venv
     if errorlevel 1 (
-        echo [ EX ] Failed to create venv. Please restart the script.
+        echo [ EX ] Failed to create venv.
         pause & exit /b 1
     )
     echo [ OK ] Environment created.
 )
 
-:: 4. ACTIVATE
 call "%~dp0.venv\Scripts\activate"
 
-:: 5. INSTALL / UPDATE DEPENDENCIES (checksum-aware — reinstalls if requirements.txt changes)
+:: 3. INSTALL DEPENDENCIES (MD5 Hash Check)
 if exist "requirements.txt" (
     set "REQ_HASH_FILE=.venv\.req_hash"
     set "CURRENT_HASH="
     for /f "delims=" %%H in ('powershell -NoProfile -Command "Get-FileHash requirements.txt -Algorithm MD5 | Select-Object -ExpandProperty Hash"') do set "CURRENT_HASH=%%H"
 
     set "STORED_HASH="
-    if exist "!REQ_HASH_FILE!" (
-        set /p STORED_HASH=<"!REQ_HASH_FILE!"
-    )
+    if exist "!REQ_HASH_FILE!" set /p STORED_HASH=<"!REQ_HASH_FILE!"
 
     if /i "!CURRENT_HASH!" neq "!STORED_HASH!" (
         echo [ .. ] Installing/updating required libraries...
+        python -m pip install --upgrade pip --quiet
         python -m pip install -r requirements.txt --quiet
         if errorlevel 1 (
             echo [ EX ] Failed to install libraries. Check your internet connection.
@@ -79,12 +84,13 @@ if exist "requirements.txt" (
     ) else (
         echo [ OK ] Libraries are up to date.
     )
-) else (
-    echo [ !! ] requirements.txt not found. Skipping library install.
 )
 
-:: 6. LAUNCH
+:: 4. LAUNCH
 echo [ .. ] Starting AI Setup Engine...
 python setup.py
 
-pause
+:: 5. SMART PAUSE (Only pause if Python crashed)
+if %ERRORLEVEL% NEQ 0 (
+    pause
+)
