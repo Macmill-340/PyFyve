@@ -119,16 +119,16 @@ def main():
                         console.print(search_url)
 
                     # AI hint fires for ALL errors except security blocks
-                    if result["status"] != "sec_error" and result.get("raw_err_str"):
-                        console.print("\nFetching AI hint...", style="info")
-                        try:
-                            get_response(
-                                lesson_task=task,
-                                user_code=user_code,
-                                raw_error=result["raw_err_str"]
-                            )
-                        except Exception:
-                            console.print("[AI hint unavailable — continuing without it.]", style="info")
+                        if result["status"] != "sec_error" and result.get("raw_err_str"):
+                            console.print("\nFetching AI hint...", style="info")
+                            try:
+                                get_response(
+                                    lesson_task=task,
+                                    user_code=user_code,
+                                    raw_error=result["raw_err_str"]
+                                )
+                            except Exception:
+                                console.print("[AI hint unavailable — continuing without it.]", style="info")
 
                     console.print("\nTry again.\n", style="info")
                     reset_file = False
