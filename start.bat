@@ -1,14 +1,45 @@
 @echo off
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
-color 0A
 title PyFyve
+
+:: ── WINDOWS TERMINAL DETECTION & RELAUNCH ─────────────────────────────────────
+:: WT_SESSION is set by Windows Terminal for every process running inside it.
+:: If it's not set, we're in cmd — try to move to Windows Terminal for better visuals.
+
+if defined WT_SESSION goto :inside_wt
+
+:: Check if Windows Terminal is already installed
+where wt >nul 2>&1
+if %errorlevel% equ 0 goto :relaunch_in_wt
+
+:: Not installed — try to install silently (non-blocking: if it fails, continue in cmd)
+echo [ .. ] Installing Windows Terminal for better visuals...
+winget install --id 9N0DX20HK701 --source msstore --accept-package-agreements --accept-source-agreements --silent >nul 2>&1
+if %errorlevel% equ 0 (
+    where wt >nul 2>&1
+    if %errorlevel% equ 0 goto :relaunch_in_wt
+)
+:: WT install failed or unavailable — fall through to run in cmd normally
+echo [ .. ] Running in standard terminal.
+goto :inside_wt
+
+:relaunch_in_wt
+:: Relaunch this exact script inside Windows Terminal
+:: --title sets the tab name; the new session will have WT_SESSION set so this block is skipped
+wt --title "PyFyve" cmd /c "cd /d \"%~dp0\" && \"%~f0\""
+exit /b
+
+:inside_wt
+:: ── FROM HERE DOWN: normal startup regardless of terminal ─────────────────────
+color 0F
+mode con: cols=110 lines=38
 
 echo ===================================================
 echo        PyFyve Initializing...
 echo ===================================================
 
-:: 1. PYTHON CHECK & INSTALL (Using the new Python Install Manager)
+:: 1. PYTHON CHECK & INSTALL
 echo [ .. ] Verifying Python Environment...
 set "PY_CMD="
 
@@ -21,21 +52,19 @@ if not defined PY_CMD (
 )
 
 if not defined PY_CMD (
-    echo [ !! ] Python not found. Installing Python Install Manager...
-    :: Reverted to the official MS Store Python Install Manager ID
+    echo [ !! ] Python 3.13 not found. Installing Python Install Manager...
     winget install --id 9NQ7512CXL7T --source msstore --accept-package-agreements --accept-source-agreements
     if !errorlevel! neq 0 (
-        echo [ EX ] Automatic installation failed. Please install manually.
+        echo [ EX ] Automatic installation failed.
+        echo        Please install Python 3.13 manually from https://python.org
         pause & exit /b 1
     )
     echo [ OK ] Python Install Manager installed.
 
-    :: Dynamically refresh PATH from Windows Registry to AVOID RESTARTING!
+    :: Refresh PATH from the Windows Registry — avoids needing to restart the terminal
     for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
     for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
     set "PATH=!SYS_PATH!;!USER_PATH!"
-
-    :: Explicitly add the WindowsApps directory where the new manager places its execution aliases
     set "PATH=%LOCALAPPDATA%\Microsoft\WindowsApps;!PATH!"
 
     set "PY_CMD=py -3.13"
@@ -43,7 +72,7 @@ if not defined PY_CMD (
 
 %PY_CMD% --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo[ EX ] Python was installed but the system cannot locate it. Please restart this terminal.
+    echo [ EX ] Python was installed but could not be located. Please restart this terminal.
     pause & exit /b 1
 )
 echo [ OK ] Python is active.
@@ -62,7 +91,7 @@ if not exist ".venv\Scripts\activate" (
 
 call "%~dp0.venv\Scripts\activate"
 
-:: 3. INSTALL DEPENDENCIES (MD5 Hash Check)
+:: 3. INSTALL / UPDATE DEPENDENCIES
 if exist "requirements.txt" (
     set "REQ_HASH_FILE=.venv\.req_hash"
     set "CURRENT_HASH="
@@ -84,13 +113,14 @@ if exist "requirements.txt" (
     ) else (
         echo [ OK ] Libraries are up to date.
     )
+) else (
+    echo [ !! ] requirements.txt not found. Skipping library install.
 )
 
 :: 4. LAUNCH
-echo [ .. ] Starting AI Setup Engine...
+echo [ .. ] Starting PyFyve Setup...
 python setup.py
 
-:: 5. SMART PAUSE (Only pause if Python crashed)
 if %ERRORLEVEL% NEQ 0 (
     pause
 )

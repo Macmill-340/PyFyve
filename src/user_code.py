@@ -42,31 +42,38 @@ def user_input(task, reset_file):
     return separated_code
 
 def security_check(user_code):
+    forbidden_modules = {"os", "sys", "shutil", "subprocess"}
+    forbidden_functions = {"eval", "exec", "__import__", "open"}
     try:
         tree = ast.parse(user_code)
-
-        forbidden_modules = {"os", "sys", "shutil", "subprocess"}
-        forbidden_functions = {"eval", "exec", "__import__", "open"}
-
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    if alias.name in forbidden_modules:
-                        return f"Security Error: Importing '{alias.name}' is forbidden."
-
-            if isinstance(node, ast.ImportFrom):
-                if node.module in forbidden_modules:
-                    return f"Security Error: Importing from '{node.module}' is forbidden."
-
-            if isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Name):
-                    if node.func.id in forbidden_functions:
-                        return f"Security Error: Function '{node.func.id}' is forbidden."
-
-        return None
-
     except SyntaxError:
         return None
+
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in forbidden_modules:
+                    return f"Security Error: Importing '{alias.name}' is forbidden."
+
+        if isinstance(node, ast.ImportFrom):
+            if node.module in forbidden_modules:
+                return f"Security Error: Importing from '{node.module}' is forbidden."
+
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name):
+                if node.func.id in forbidden_functions:
+                    return f"Security Error: Function '{node.func.id}' is forbidden."
+            if isinstance(node.func, ast.Attribute):
+                if node.func.attr in forbidden_functions:
+                    return f"Security Error: Function '{node.func.attr}' is forbidden."
+        if isinstance(node, ast.Attribute):
+            if node.attr.startswith('__') and node.attr.endswith('__'):
+                return f"Security Error: Dunder attribute access is forbidden."
+
+    return None
+
+
 
 def exec_code(user_code):
     security_error = security_check(user_code)

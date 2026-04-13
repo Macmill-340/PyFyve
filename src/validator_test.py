@@ -1,6 +1,9 @@
+from console import console
+
+
 def validate(result, rules, user_code):
     if "error" in result["status"]:
-        print("❌ Task incomplete due to errors in your code.")
+        console.print("❌ Task incomplete due to errors in your code.", style="error")
         return "Fail"
 
     if rules["type"] == "variable_check":
@@ -9,7 +12,7 @@ def validate(result, rules, user_code):
         if target_variables.keys() <= user_variables.keys():
             extra_variables = user_variables.keys() - target_variables.keys()
             if extra_variables:
-                print(f"Note: You created extra variables: {extra_variables}")
+                console.print(f"Note: You created extra variables: {extra_variables}", style="info")
             shared_keys = user_variables.keys() & target_variables.keys()
             mismatch = {k for k in shared_keys if target_variables[k] != user_variables[k]}
             if not mismatch:
@@ -17,12 +20,12 @@ def validate(result, rules, user_code):
             else:
                 type_mismatches = {k for k in mismatch if type(user_variables[k]) != type(target_variables[k])}
                 if type_mismatches:
-                    print("❌ Task incomplete — one or more variables has the wrong type. Check what kind of value you assigned.")
+                    console.print("❌ Task incomplete — one or more variables has the wrong type. Check what kind of value you assigned.", style="error")
                     return "Fail"
-                print("❌ Task incomplete — check the values assigned to your variables.")
+                console.print("❌ Task incomplete — check the values assigned to your variables.", style="error")
                 return "Fail"
         else:
-            print("❌ Task incomplete — not all required variables were found.")
+            console.print("❌ Task incomplete — not all required variables were found.", style="error")
             return "Fail"
 
     if rules["type"] == "output_check":
@@ -31,7 +34,7 @@ def validate(result, rules, user_code):
         if target_output == user_output:
             return "Pass"
         else:
-            print("❌ Task incomplete — check the task for the required output and try again.")
+            console.print("❌ Task incomplete — check the task for the required output and try again.", style="error")
             return "Fail"
 
     if rules["type"] == "type_check":
@@ -48,24 +51,27 @@ def validate(result, rules, user_code):
         if target_variables.keys() <= user_variables.keys():
             extra_variables = user_variables.keys() - target_variables.keys()
             if extra_variables:
-                print(f"Note: You created extra variables: {extra_variables}")
+                console.print(f"Note: You created extra variables: {extra_variables}", style="info")
             shared_keys = user_variables.keys() & target_variables.keys()
             for key in shared_keys:
                 target_type = type_map.get(target_variables[key])
                 if not isinstance(user_variables[key], target_type):
-                    print("❌ Task incomplete — check that the value assigned is of the correct type.")
+                    console.print("❌ Task incomplete — check that the value assigned is of the correct type.", style="error")
                     return "Fail"
             else:
                 return "Pass"
         else:
-            print("❌ Task incomplete — required variable not found.")
+            console.print("❌ Task incomplete — required variable not found.", style="error")
             return "Fail"
 
     if rules["type"] == "source_check":
         if rules["required_syntax"].lower() in user_code.lower():
             return "Pass"
         else:
-            print("❌ Task incomplete.\nIt is suspected that you are not using the methods referenced in the lesson.\nAvoid printing only the output if any particular method is asked to achieve the output.\nIf you are already using correct method, avoid naming variables the same as python functions such as 'while' or 'for'.")
+            console.print("❌ Task incomplete.", style="error")
+            console.print("It is suspected that you are not using the methods referenced in the lesson.", style="error")
+            console.print("Avoid printing only the output if any particular method is asked to achieve the output.", style="info")
+            console.print("If you are already using the correct method, avoid naming variables the same as Python keywords such as 'while' or 'for'.", style="info")
             return "Fail"
 
     if rules["type"] == "collection_check":
@@ -74,37 +80,37 @@ def validate(result, rules, user_code):
         if target_variables.keys() <= user_variables.keys():
             extra_variables = user_variables.keys() - target_variables.keys()
             if extra_variables:
-                print(f"Note: You created extra variables: {extra_variables}")
+                console.print(f"Note: You created extra variables: {extra_variables}", style="info")
             for var in target_variables:
                 if target_variables[var]["type"] == "list":
                     if not isinstance(user_variables[var], list):
-                        print(f"❌ Task incomplete — check the type of your collection.")
+                        console.print("❌ Task incomplete — check the type of your collection.", style="error")
                         return "Fail"
                     if "size" in target_variables[var] and len(user_variables[var]) != target_variables[var]["size"]:
-                        print("❌ Task incomplete — your collection is not the required size.")
+                        console.print("❌ Task incomplete — your collection is not the required size.", style="error")
                         return "Fail"
                     if "contains" in target_variables[var]:
                         for items in target_variables[var]["contains"]:
                             if not items in user_variables[var]:
-                                print(f"❌ Task incomplete — check the contents of your collection.")
+                                console.print("❌ Task incomplete — check the contents of your collection.", style="error")
                                 return "Fail"
                 elif target_variables[var]["type"] == "dict":
                     if not isinstance(user_variables[var], dict):
-                        print(f"❌ Task incomplete — check the type of your collection.")
+                        console.print("❌ Task incomplete — check the type of your collection.", style="error")
                         return "Fail"
                     if "size" in target_variables[var] and len(user_variables[var]) != target_variables[var]["size"]:
-                        print("❌ Task incomplete — your collection is not the required size.")
+                        console.print("❌ Task incomplete — your collection is not the required size.", style="error")
                         return "Fail"
                     if "contains" in target_variables[var]:
                         if not target_variables[var]["contains"].items() <= user_variables[var].items():
-                            print("❌ Task incomplete — check the key-value pairs in your dictionary.")
+                            console.print("❌ Task incomplete — check the key-value pairs in your dictionary.", style="error")
                             return "Fail"
             else:
                 return "Pass"
         else:
-            print("❌ Task incomplete — not all required variables were found.")
+            console.print("❌ Task incomplete — not all required variables were found.", style="error")
             return "Fail"
 
     # Unknown validation type — fail loudly so lesson authors catch mistakes in their JSON
-    print(f"❌ Unknown validation type: '{rules['type']}'. Check your lesson JSON.")
+    console.print(f"❌ Unknown validation type: '{rules['type']}'. Check your lesson JSON.", style="error")
     return "Fail"

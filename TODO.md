@@ -1,65 +1,79 @@
-# PyFyve: Project Roadmap
+# PyFyve — Roadmap
 
-## ⚙️ Core Engine & Security
-- [x] Basic Execution Sandbox (using `exec()` and `redirect_stdout`).
-- [x] Security Blacklist (Static string checking).
-- [x] Security Whitelist (Runtime restriction of `__builtins__`).
-- [x] Implement AST (Abstract Syntax Tree) parsing to block forbidden nodes (`import`, `eval`).
-- [x] Fix `raw_err_str` format for syntax errors — must be `"Syntax Error in line N: <msg>"` to match training data (was passing bare `se.msg`).
-- [x] Fix `raw_err_str` format for runtime errors — must be `"ErrorType on line: N: <message>"` to match training data (was passing bare `str(e)`).
-- [x] Separate `search_str` from `raw_err_str` — search URL includes error + offending line of code for better Google/AI search results; `raw_err_str` stays clean for the AI model.
-- [ ] **AST Source Check:** Upgrade `source_check` to use AST parsing (Verify logic structure like `ast.For`, ignore comments/strings).
-- [ ] **Modular Whitelists:** Dynamically allow specific modules (e.g., `math`, `random`) based on lesson requirements.
-- [ ] **Process Watchdog:** Add a timer/multiprocessing limit to kill infinite loops in user code — a bare `while True: pass` currently hangs the app with no recovery.
+Items marked ✅ are done. Everything else is planned or in progress.
 
-## 🖥️ User Experience (UX) & Editor
-- [x] Implement Notepad++ access for taking inputs on Windows.
-- [x] Add standardized error messages for common beginner syntax mistakes.
-- [x] Integrate browser search link for non-standardized errors (includes offending code line for better search results).
-- [ ] **Strip Linux/Mac dead code:** Remove the untested `nano` fallback from `user_code.py`. Windows-only is the honest current state; cross-platform comes later as a real tested feature.
-- [ ] **Cross-Platform Support:** Add Linux and Mac support properly (Nano, TextEdit, or `$EDITOR`) — only after Windows version is stable and shipped.
-- [ ] **Rich UI:** Use the `rich` library to enhance terminal UI/UX (colours, panels, syntax highlighting).
-- [ ] **Refactor Validator Returns:** Change `validator_test.py` to return `(status, message)` tuples instead of printing directly to console — required before the pytest suite can test output properly.
+---
 
-## 🧠 AI & Data Pipeline
-- [x] Generate 555 high-quality Socratic examples using Qwen3 30B-A3B teacher model.
-- [x] Build data hygiene scripts (`fix_data_user.py`, `shuffle.py`).
-- [x] Build quality validation in `hint_generator.py` with `validate_hint_quality()`.
-- [x] Fine-tune Qwen3 4B with QLoRA via Unsloth on Colab T4.
-- [x] Local LLM inference via Ollama.
-- [x] Few-shot examples anchored in `ai_response.py` at inference time (confirmed necessary — model reverts to answer-giving without them).
-- [ ] **Phase 2 Logical Error Hints:** When code runs without exceptions but validation fails (wrong value, wrong output), fire a second AI path that receives expected vs actual result and guides Socratically. Requires separate prompt design and its own training data — distinct from the exception-based hint system.
-- [ ] **Expand `validate_hint_quality()` Semantic Checks:** Currently only covers `str.append → list conversion` and `unmatched ) → add vs remove` cases. Extend as new error types are trained on.
-- [ ] **Native Inference:** Migrate from Ollama to `llama-cpp-python` to remove third-party app dependency for end-users.
-- [ ] **Pipeline Cleanup:** Move all dataset and training scripts to a dedicated `data_pipeline/` subfolder with a README documenting the full pipeline stages (staging → hint generation → merge → shuffle → verify → train).
+## Safety & Sandboxing
 
-## 🎓 Curriculum & Validation
-- [x] Implement `validator_test.py` (variable, output, type, source, collection checks).
-- [x] Multi-type checks (multiple validation rules per lesson).
-- [x] `variable_check` with type mismatch detection (prints specific message for int vs str etc.).
-- [x] `output_check` with `.strip()` on both sides.
-- [x] `type_check` using `isinstance`.
-- [x] `collection_check` for lists and dicts (size, type, contents).
-- [x] Add `author` field to lesson JSON schema for contribution tracking and future lesson pack segregation.
-- [ ] **Write Real Lessons:** Current lesson set is placeholder only. Need minimum 10 lessons covering Variables → Strings → Conditionals → Loops → Functions before the app is demonstrable.
-- [ ] **Nested Data Checks:** Drill into complex structures (e.g. check `users[1]["name"] == "Alice"`).
-- [ ] **Function Unit Testing:** Hidden test cases run against student's function (e.g. FizzBuzz checked against multiple inputs).
-- [ ] **Multi-Task Lessons:** Step-by-step progression through multiple tasks within a single lesson file.
-- [ ] **Test Suite:** Write `test_validator.py` — automated pytest suite for all validation types. Prerequisite: refactor validator returns to tuples first.
+- ✅ Code runs in a sandbox — it cannot touch the file system or run system commands
+- ✅ Forbidden functions (`eval`, `exec`, `open`, `__import__`) blocked before running
+- ✅ Forbidden imports (`os`, `sys`, `subprocess`, etc.) blocked
+- ✅ Output captured cleanly without affecting the rest of the app
+- [ ] **Infinite loop timeout** — a `while True: pass` freezes the app with no way out. Need a background timer that kills runaway code after a few seconds and returns a clean error message.
+- [ ] **Smarter source checking** — `source_check` currently looks for a keyword anywhere in the code as plain text, so it can be fooled by a comment. Upgrade to check actual code structure so only real usage counts.
+- [ ] **Per-lesson module access** — some lessons will need `math`, `random`, etc. Add a way for a lesson to specify which extra modules are allowed, and unlock only those for that lesson.
 
-## 💾 State Management
-- [x] Session progress saved/loaded via `user_progress.json`.
-- [x] Lessons dynamically loaded from `lessons/*.json`.
-- [x] Float-based lesson file sorting (`01.0`, `02.5` etc.) for inserting intermediate lessons without renaming.
+---
 
-## 📦 Product & Distribution
-- [x] Licence decided: AGPL-3.0 for app and pipeline code (attribution required, modifications must be open); CC BY-NC-SA 4.0 for fine-tuned model weights (non-commercial, attribution, share-alike). Base model is Qwen3 4B under Qianwen Licence — read it before distributing.
-- [ ] **Model Distribution via GitHub Releases:** Attach GGUF as a GitHub Release asset (not in git history — git cannot handle 3GB files). Update `start.bat` to auto-download the GGUF on first run using PowerShell `Invoke-WebRequest` if `models/fyve-ai.gguf` does not exist. Add `models/` to `.gitignore` and a `models/.gitkeep` to keep the folder in the repo so path assumptions hold.
-- [ ] **Robust `start.bat` and `setup.py`:** Add exception handling for every failure point in the batch script and setup — Ollama not installed, model file missing, model not registered, Ollama service not running. Instead of crashing `main.py`, these should print a clear human-readable message and either exit gracefully or continue with AI disabled. Currently a missing model silently breaks the hint system with no explanation to the user.
-- [ ] **Graceful AI Degradation in `main.py`:** If Ollama is unavailable or the model fails to load, `main.py` should catch the exception, print "AI hints unavailable — continuing without hints", and keep the lesson loop running. The app should never crash because the AI is missing.
-- [ ] **`models/` folder scaffolding:** Add `models/.gitkeep` to repo so the download path exists on fresh clone. Add `models/` to `.gitignore` so the GGUF is never accidentally committed.
-- [ ] **`.gitignore`:** Add before first commit — must exclude `*.gguf`, `*.jsonl`, `user_workspace.py`, `user_progress.json`, `__pycache__/`, `venv/`, `.env`.
-- [ ] **The "Escape Hatch":** 3-strike rule that offers to reveal the solution if the student is stuck.
-- [ ] **Local Analytics:** Track time-to-completion and error frequencies in a hidden `stats.json` to identify poorly written lessons.
-- [ ] **One-Click Installer:** PyInstaller or Nuitka to bundle Python environment + GGUF + scripts into a single `.exe` — only after app is stable and model distribution via HuggingFace is proven.
-- [ ] **Dynamic Curriculum:** AI generates a valid `lesson.json` on the fly for topics not in the syllabus.
+## Editor & User Experience
+
+- ✅ Bundled Notepad++ editor on Windows
+- ✅ Notepad fallback if bundled editor is missing
+- ✅ Linux/Mac dead code removed — Windows-only is the honest current state
+- ✅ Friendly error messages for the most common beginner mistakes
+- ✅ Search link for unusual errors (includes the offending line for better results)
+- ✅ Terminal resizes to a comfortable width on launch
+- ✅ Screen clears when the lesson loop starts — no setup noise visible during lessons
+- ✅ Restart-from-scratch option after completing all lessons
+- [ ] **Cross-platform support** — proper Linux and Mac editor integration, tested end-to-end. Only after Windows is stable.
+- [ ] **Colour and formatting** — use the `rich` library for coloured headings, bordered lesson panels, and cleaner output overall.
+- [ ] **Escape hatch (3-strike rule)** — after failing the same task 3 times, offer to reveal the solution. Being completely stuck with no way forward is worse than seeing an answer once.
+- [ ] **Multiple tasks in one lesson** — right now each lesson has one task. Add support for a `tasks` array so a lesson can walk through a concept in 2-3 connected steps before moving on. Requires changes to the validator loop in `main.py` and the lesson JSON schema.
+- [ ] **Practice exercise mode** — a separate mode accessible from the main menu, distinct from lessons. Exercises are harder, have no tutorial text, and test the same concepts with less hand-holding. Uses a separate `exercises/` folder with the same JSON format. No progress saved — pure practice.
+- [ ] **Solution reveal block** — lessons and exercises can optionally include a `"solution"` field in the JSON that is only shown after the escape hatch triggers or enough failed attempts. Never displayed during normal play.
+- [ ] **Better source_check failure messages** — the current message ("It is suspected you are not using the methods...") is too generic and often misleading. The message should reflect the actual requirement that failed, not imply a general method-usage issue.
+- [ ] **Fresh Notepad++ portable** — replace the current bundled npp.exe with a clean portable build with dark mode enabled as the only non-default setting.
+
+---
+
+## AI Hints
+
+- ✅ AI fires on Python errors and streams the hint one character at a time
+- ✅ Hint is always exactly 3 sentences: what went wrong, which rule was broken, a guiding question
+- ✅ AI retries up to 3 times if the response is malformed
+- ✅ App keeps running if the AI is unavailable — the lesson loop does not crash
+- ✅ Ambiguous runtime errors (NameError, TypeError) removed from static hint map — AI handles these since the cause varies too much for a single fixed message
+- [ ] **Hints for wrong answers** — when code runs fine but gives the wrong output or wrong variable value, the AI fires but was not trained on these cases. Needs a dedicated training path: a second set of examples where the error is a wrong value or wrong output, and the hint guides toward the logic mistake. This is the next major AI feature.
+- [ ] **Expand model training data** — known gaps in the current 555-example dataset: trailing comma creating tuples, stray brackets in unusual positions, uncommon punctuation errors. These need new training examples before the model handles them reliably.
+- [ ] **Remove Ollama dependency** — long-term goal is to run the AI as a Python library directly, with no external app required.
+
+---
+
+## Lessons & Curriculum
+
+- ✅ Validator supports: variable check, output check, type check, source check, collection check
+- ✅ Multiple validation rules per lesson (all must pass)
+- ✅ Type mismatch detection — tells the student when they used the wrong data type
+- ✅ Float-numbered lesson files so new lessons can be inserted anywhere without renaming
+- ✅ Lessons without a task (intro/reading lessons) are supported and auto-advance
+- [ ] **Write the full beginner curriculum** — current lessons are functional placeholders. Need: While Loops, Functions, Dictionaries, and more before the curriculum is complete.
+- [ ] **Multi-step lessons** — walk through a concept in 2-3 connected tasks within one lesson before moving on. Blocked on the multiple tasks UX work above.
+- [ ] **Nested data checks** — validator currently can't check inside nested structures like a list of dictionaries.
+- [ ] **Function testing** — run the student's function against multiple hidden test inputs to check it works generally, not just for one case.
+- [ ] **Automated lesson tests** — write a test suite for `validator_test.py` so lesson authors can confirm their validation rules work before publishing.
+
+---
+
+## Setup & Distribution
+
+- ✅ `start.bat` sets up a Python virtual environment automatically
+- ✅ Dependencies installed and updated automatically when `requirements.txt` changes
+- ✅ Ollama installed and launched automatically if not running
+- ✅ Modelfile downloaded automatically from HuggingFace if missing — model folder not required in repository
+- ✅ AI model downloaded automatically on first run if not found (with progress bar)
+- ✅ Model update check on launch — if a newer version is on HuggingFace and internet is available, user is prompted to update; old model and GGUF cleaned up automatically
+- ✅ No manual terminal commands required from the user
+- [ ] **`.gitignore` audit** — confirm `*.gguf`, `model/`, `user_progress.json`, `user_workspace.py`, `__pycache__/`, `.venv/` are all excluded.
+- [ ] **Local session stats** — track attempts per lesson and most common errors, saved quietly to `stats.json`. Useful for spotting poorly written lessons.
+- [ ] **One-click installer** — bundle Python, the app, and the model into a single `.exe`. Only once the app is fully stable.

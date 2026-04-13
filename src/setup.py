@@ -7,21 +7,21 @@ import urllib.request
 
 # --- CONFIG ---
 MODEL_NAME     = "fyve-ai"
-MODEL_DIR      = "model"
+MODEL_DIR      = "models"
 MODEL_FILE     = os.path.join(MODEL_DIR, "Modelfile")
 GGUF_FILE      = os.path.join(MODEL_DIR, "fyve-ai.Q4_K_M.gguf")
 VERSION_FILE   = os.path.join(MODEL_DIR, "version.txt")
 
 GGUF_URL       = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "fyve-ai.Q4_K_M.gguf?download=true"
 )
 MODELFILE_URL  = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "Modelfile?download=true"
 )
 VERSION_URL    = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "version.txt?download=true"
 )
 
@@ -154,7 +154,6 @@ def download_file(url, dest_path, label):
 
 
 def get_remote_version():
-    """Fetch the latest version string from HuggingFace. Returns None if offline."""
     try:
         with urllib.request.urlopen(VERSION_URL, timeout=5) as r:
             return r.read().decode().strip()
@@ -178,7 +177,6 @@ def save_local_version(version):
 # ── Model helpers ──────────────────────────────────────────────────────────────
 
 def unregister_model(exe):
-    """Remove the model from Ollama's registry."""
     print(f"[ .. ] Removing old model from Ollama...")
     try:
         subprocess.run(
@@ -193,14 +191,12 @@ def unregister_model(exe):
 
 
 def delete_gguf():
-    """Delete the local GGUF file to free disk space."""
     if os.path.exists(GGUF_FILE):
         os.remove(GGUF_FILE)
         print("[ OK ] Old model file deleted.")
 
 
 def register_model(exe):
-    """Register the model with Ollama using the Modelfile. Returns True on success."""
     print(f"[ .. ] Registering {MODEL_NAME} with Ollama (this may take a moment)...")
     res = subprocess.run(
         [exe, "create", MODEL_NAME, "-f", MODEL_FILE],
@@ -217,11 +213,8 @@ def register_model(exe):
 
 def check_for_model_update(exe):
     """
-    If internet is available, check if a newer model version exists.
     Update order (critical): unregister → delete GGUF → download Modelfile →
-    download GGUF → register. This ensures we never register a partial update.
-    If download fails at any point, the user is told AI hints are unavailable
-    and the app continues without them.
+    download GGUF → register. Never registers a partial update.
     """
     print("[ .. ] Checking for model updates...")
     remote_version = get_remote_version()
@@ -246,39 +239,30 @@ def check_for_model_update(exe):
         print("[ .. ] Skipping update. Continuing with current model.")
         return
 
-    # Step 1: Remove old model from Ollama FIRST (before touching files)
+    # Step 1: Unregister from Ollama FIRST
     unregister_model(exe)
-
-    # Step 2: Delete old GGUF to free space
+    # Step 2: Delete GGUF to free space
     delete_gguf()
-
-    # Step 3: Download fresh Modelfile (covers Modelfile changes too)
+    # Step 3: Fresh Modelfile (covers Modelfile-only changes)
     print("[ .. ] Downloading updated Modelfile...")
     if not download_file(MODELFILE_URL, MODEL_FILE, "Modelfile"):
-        print("[ EX ] Could not download updated Modelfile. AI hints will be unavailable.")
+        print("[ EX ] Could not download Modelfile. AI hints will be unavailable.")
         return
-
-    # Step 4: Download new GGUF
+    # Step 4: New GGUF
     if not download_file(GGUF_URL, GGUF_FILE, "AI model"):
         print("[ EX ] Model download failed. AI hints will be unavailable until next run.")
         return
-
-    # Step 5: Register — only reached if both downloads succeeded
+    # Step 5: Register — only if both downloads succeeded
     if register_model(exe):
         save_local_version(remote_version)
         print(f"[ OK ] Model updated to v{remote_version}.")
     else:
-        print("[ EX ] Registration failed after download. Try running start.bat again.")
+        print("[ EX ] Registration failed. Try running start.bat again.")
 
 
 def ensure_model_registered(exe):
-    """
-    Ensure the model is present and registered. Downloads Modelfile and GGUF
-    from HuggingFace if either is missing. Checks for updates if already installed.
-    """
     os.makedirs(MODEL_DIR, exist_ok=True)
 
-    # Ensure Modelfile exists
     if not os.path.exists(MODEL_FILE):
         print("[ .. ] Modelfile not found. Downloading...")
         if not download_file(MODELFILE_URL, MODEL_FILE, "Modelfile"):
@@ -300,11 +284,9 @@ def ensure_model_registered(exe):
 
     if MODEL_NAME in check.stdout:
         print(f"[ OK ] Model '{MODEL_NAME}' is ready.")
-        # Already installed — check for updates
         check_for_model_update(exe)
         return
 
-    # Not registered — need GGUF
     if not os.path.exists(GGUF_FILE):
         print(f"\n[ !! ] AI model file not found in '{MODEL_DIR}/'.")
         answer = input(f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/n]: ").strip().lower()
@@ -314,7 +296,7 @@ def ensure_model_registered(exe):
                 return
         else:
             print("       Skipping. AI hints will be unavailable.")
-            print("       https://huggingface.co/Macmill/qwen-finetune-v3")
+            print("       https://huggingface.co/Macmill/Fyve-AI")
             return
 
     if register_model(exe):
@@ -344,11 +326,12 @@ def main():
     print("\n[ OK ] Setup complete. Launching PyFyve...")
     time.sleep(1)
 
-    if os.path.exists("main.py"):
-        result = subprocess.run([sys.executable, "main.py"])
+    # All source lives in src/ — working directory is always the project root
+    if os.path.exists("src/main.py"):
+        result = subprocess.run([sys.executable, "src/main.py"])
         sys.exit(result.returncode)
     else:
-        print("[ EX ] main.py not found. Your installation may be incomplete.")
+        print("[ EX ] src/main.py not found. Your installation may be incomplete.")
         sys.exit(1)
 
 

@@ -1,0 +1,17 @@
+{
+    "id": 1,
+    "author": "Macmill-340",
+    "topic": "Variables & Assignment",
+    "text": "WHAT IS A VARIABLE?\nA variable is a named container that holds a value. You create one by writing a name, then the = sign, then the value you want to store.\n\nSYNTAX:\n    variable_name = value\n\nThe = sign here is called the assignment operator. It does not mean 'equal to' — it means 'store this value in this container'.\n\nNAMING RULES:\n- Names can contain letters, numbers, and underscores.\n- Names cannot start with a number.\n- Names cannot have spaces. Use underscores instead: player_score, not player score.\n- Names are case-sensitive: score and Score are two different variables.\n\nEXAMPLES:\n    score = 100\n    player_name = \"Mario\"\n    lives_remaining = 3\n\nYou can overwrite a variable by assigning it again:\n    score = 100\n    score = 200    # score is now 200\n\nCOMMON MISTAKE:\nThe value goes on the RIGHT. The name goes on the LEFT.\n    100 = score    # Wrong — SyntaxError\n    score = 100    # Correct",
+    "common_errors": "Writing `100 = score` instead of `score = 100`. The variable name must always be on the left side of the = sign.",
+    "task": "Create two variables: one named 'health' with the value 100, and one named 'stamina' with the value 90.",
+    "validation": [
+        {
+            "type": "variable_check",
+            "var_info": {
+                "health": 100,
+                "stamina": 90
+            }
+        }
+    ]
+}

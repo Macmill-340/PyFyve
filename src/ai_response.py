@@ -1,11 +1,13 @@
+import sys
 import ollama
 import time
 import json
+from console import console
 
 
 def format_for_app_display(text):
     """
-    split on '. ' (period + space) only,
+    Split on '. ' (period + space) only,
     so method names like .append() and .upper() are never broken.
     """
     cleaned = ' '.join(text.split())
@@ -58,7 +60,7 @@ Rules:
         Error:
         SyntaxError: unmatched ')' at line 1
         {{"reasoning": "There is one extra closing parenthesis at the end of line 1. The print call is already correctly closed. I must guide toward counting and removing — NOT adding anything.", "hint": "Your print statement on line 1 has one more closing parenthesis than it has opening ones.\\nIn Python, every opening parenthesis must be matched by exactly one closing parenthesis — no more, no less.\\nConsider how many opening parentheses appear in that line and whether the number of closing ones matches exactly."}}
-        
+
         Example 2b (Stray Parenthesis in Assignment):
         Task:
         Assign 90 to the variable stamina.
@@ -67,7 +69,7 @@ Rules:
         Error:
         SyntaxError: unmatched ')' at line 1
         {{"reasoning": "The assignment 'stamina = 90)' ends with a closing parenthesis, but there is no opening parenthesis on the line. I must point out the stray character without claiming assignments can't have parentheses.", "hint": "Your assignment on line 1 ends with a closing parenthesis ')', but there is no opening parenthesis to match it.\\nIn Python, a closing parenthesis is only valid if it follows an earlier opening parenthesis.\\nLook closely at the end of the line and remove the stray character that does not belong there."}}
-        
+
         Example 3 (AttributeError string .append — guide toward +, not list):
         Task:
         Create a string 'Hello' and try to append ' World' using .append().
@@ -172,24 +174,27 @@ Rules:
             if not reasoning or not hint:
                 raise ValueError("Missing reasoning or hint keys")
 
-            print("AI RESPONSE:")
-            print("Reasoning:")
-            for sent in format_for_app_display(reasoning):
-                for ch in sent:
-                    print(ch, end='', flush=True)
-                    time.sleep(0.01)
-                print()
+            console.print("\nAI RESPONSE:", style="accent")
+            console.print("Hint:", style="info")
 
-            print("Hint:")
-            for line in [l.strip() for l in hint.split('\n') if l.strip()]:
+            # Character-by-character streaming — kept as raw stdout writes
+            # to avoid Rich buffering interfering with the flush trick.
+            hint_lines = [l.strip() for l in hint.split('\n') if l.strip()]
+            for i, line in enumerate(hint_lines):
+                # Apply italic cyan to the third line (the directive)
+                style_open  = "\033[3;96m" if i == 2 else ""
+                style_close = "\033[0m"    if i == 2 else ""
+                sys.stdout.write(style_open)
                 for ch in line:
-                    print(ch, end='', flush=True)
+                    sys.stdout.write(ch)
+                    sys.stdout.flush()
                     time.sleep(0.01)
-                print()
+                sys.stdout.write(style_close + "\n")
+                sys.stdout.flush()
             return
 
         except Exception as e:
             if attempt < max_retries:
-                print(f"[Attempt {attempt} failed: {e}. Retrying...]")
+                console.print(f"[Attempt {attempt} failed: {e}. Retrying...]", style="info")
             else:
-                print(f"[AI hint unavailable after {max_retries} attempts: {e}]")
+                console.print(f"[AI hint unavailable after {max_retries} attempts: {e}]", style="info")
