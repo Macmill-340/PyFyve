@@ -5,7 +5,7 @@ __pycache__/
 venv/
 
 # PyFyve - never push
-/models/
+/model
 *.gguf
 Modelfile
 version.txt
