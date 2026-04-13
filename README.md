@@ -67,18 +67,19 @@ On every run after the first, `start.bat` is fast — it only redoes steps that 
 
 ```
 PyFyve/
-├── start.bat            ← Double-click this to run
-├── setup.py             ← Called by start.bat; handles Ollama and model setup
-├── main.py              ← The lesson loop
-├── user_code.py         ← Sandboxed code execution and error handling
-├── ai_response.py       ← Talks to the local AI model
-├── validator_test.py    ← Checks whether your code meets the lesson requirements
-├── load_lessons.py      ← Loads and displays lesson content
-├── load_progress.py     ← Saves and restores your position
+├── start.bat
+├── setup.py
 ├── requirements.txt
-├── model/               ← AI model files (downloaded on first run)
-├── lessons/             ← Lesson JSON files
-└── npp/                 ← Bundled Notepad++ editor
+├── src/ ← all Python code lives here
+│ ├── main.py
+│ ├── ai_response.py
+│ ├── console.py
+│ ├── validator_test.py
+│ ├── user_code.py
+│ ├── load_lessons.py
+│ └── load_progress.py
+├── lessons/ ← lesson JSON files
+└── models/ ← downloaded on first run (ignored by git)
 ```
 
 ---
