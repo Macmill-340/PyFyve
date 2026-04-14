@@ -3,7 +3,7 @@ import time
 import sys
 import glob
 import urllib.parse
-from console import console, apply_terminal_theme
+from console import console, apply_terminal_theme, pyinput
 from validator_test import validate
 from ai_response import get_response
 from user_code import exec_code, user_input
@@ -25,7 +25,7 @@ def main():
 
     if not lesson_files:
         console.print(f"No lessons found in '{LESSON_DIR}/'. Check your installation.", style="warning")
-        console.input("Press Enter to exit...")
+        pyinput("Press Enter to exit...")
         sys.exit(1)
 
     reset_file = True
@@ -41,7 +41,7 @@ def main():
     console.print("  · AI handles common syntax and runtime errors best.", style="info")
     console.print("  · No hints when code runs but gives the wrong result.", style="info")
     console.print("=" * 60, style="separator")
-    console.input("\nPress Enter to continue to lessons...")
+    pyinput("\nPress Enter to continue to lessons...")
 
     while True:
         if progress >= len(lesson_files):
@@ -49,7 +49,7 @@ def main():
             console.print("  🎉 You've completed all lessons! Great work. HIGH FIVE!", style="success")
             console.print("=" * 60, style="separator")
             console.print("\nDo you want to start over?")
-            choice = console.input("y(yes) or n(no)?: ")
+            choice = pyinput("y(yes) or n(no)?: ")
             if choice.lower() in ("y", "yes"):
                 progress = 0
                 save_progress(progress)
@@ -65,16 +65,18 @@ def main():
         lesson = load_lessons(lesson_files, progress)
         if lesson is None:
             console.print("Could not load the next lesson. Check your lessons folder.", style="error")
-            console.input("Press Enter to exit...")
+            pyinput("Press Enter to exit...")
             sys.exit(1)
 
         while True:
             if "task" in lesson:
-                mode = console.input("\n[1] Write Code  [2] Quit\nChoose: ").strip()
+                mode = pyinput("\n[1] Write Code  [2] Quit\nChoose: ").strip()
 
                 if mode == "1":
                     task      = lesson["task"]
                     user_code = user_input(task, reset_file)
+                    # Note: apply_terminal_theme() is called inside user_input() after
+                    # the editor closes, so the screen is already clean and grey here.
                     result    = exec_code(user_code)
 
                     console.print("\nYour code:", style="info")
@@ -97,7 +99,7 @@ def main():
                         reset_file = True
                         save_progress(progress)
                         console.print("\nHIGH FIVE! Lesson complete.\n", style="success")
-                        console.input("\nPress Enter to continue to the next lesson...")
+                        pyinput("\nPress Enter to continue to the next lesson...")
                         break
 
                     # Search link only for non-standard errors
@@ -107,7 +109,8 @@ def main():
                         console.print("\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
 
-                        if result["status"] != "sec_error":
+                        # AI hint fires for only non-standard errors except security blocks
+                        if result["status"] != "sec_error" and result.get("raw_err_str"):
                             console.print("\nFetching AI hint...", style="info")
                             try:
                                 get_response(
@@ -128,10 +131,11 @@ def main():
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
             else:
+                # Lesson has no task (intro/reading lesson) — auto-advance
                 progress  += 1
                 reset_file = True
                 save_progress(progress)
-                console.input("\nPress Enter to continue to the next lesson...")
+                pyinput("\nPress Enter to continue to the next lesson...")
                 break
 
 

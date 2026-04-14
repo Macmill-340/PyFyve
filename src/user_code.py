@@ -1,5 +1,5 @@
 import builtins
-from console import console
+from console import console, apply_terminal_theme, pyinput
 import io
 import os
 import ast
@@ -33,7 +33,13 @@ def user_input(task, reset_file):
             subprocess.run(["notepad.exe", filename], check=True)
     except Exception as e:
         console.print(f"Error opening editor: {e}")
-        console.input(f"Please edit '{filename}' manually, save it, and press [Enter] here...")
+        pyinput(f"Please edit '{filename}' manually, save it, and press [Enter] here...")
+
+    # Full clear + grey background fill after the editor closes.
+    # restore_background() alone only sets the colour attribute — blank terminal
+    # cells stay black. apply_terminal_theme() clears the screen and fills every
+    # cell with grey, giving a clean slate before "Your code:" is printed.
+    apply_terminal_theme()
 
     with open(filename, "r") as f:
         workspace_content = f.read()
@@ -49,7 +55,6 @@ def security_check(user_code):
         tree = ast.parse(user_code)
     except SyntaxError:
         return None
-
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -73,7 +78,6 @@ def security_check(user_code):
                 return f"Security Error: Dunder attribute access is forbidden."
 
     return None
-
 
 
 def exec_code(user_code):
