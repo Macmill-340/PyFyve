@@ -1,26 +1,43 @@
+import os
 import sys
 import ollama
 import time
 import json
 from console import console
 
+# ANSI sequences used for the typewriter output.
+# These must match what apply_terminal_theme() sets so the typewriter text
+# looks consistent with the rest of the terminal.
+_BG = "\033[48;2;45;45;45m"   # grey background  RGB(45,45,45)
+_FG = "\033[38;2;240;240;240m" # white foreground RGB(240,240,240)
+_IN_WT = bool(os.environ.get("WT_SESSION"))
 
-def format_for_app_display(text):
+
+def _write_line(text, italic_cyan=False):
     """
-    Split on '. ' (period + space) only,
-    so method names like .append() and .upper() are never broken.
+    Write one hint line to stdout character-by-character with a typewriter effect.
+    Maintains the grey background on every character, including when italic cyan
+    styling is applied and then reset for line 3.
     """
-    cleaned = ' '.join(text.split())
-    parts = cleaned.split('. ')
-    sentences = []
-    for part in parts:
-        part = part.strip()
-        if not part:
-            continue
-        if not part.endswith('.'):
-            part += '.'
-        sentences.append(part)
-    return sentences
+    if _IN_WT:
+        sys.stdout.write(_BG + _FG)
+
+    if italic_cyan:
+        sys.stdout.write("\033[3;96m")  # italic bright cyan
+
+    for ch in text:
+        sys.stdout.write(ch)
+        sys.stdout.flush()
+        time.sleep(0.01)
+
+    if italic_cyan:
+        # \033[0m resets everything including background — restore immediately.
+        sys.stdout.write("\033[0m")
+        if _IN_WT:
+            sys.stdout.write(_BG + _FG)
+
+    sys.stdout.write("\n")
+    sys.stdout.flush()
 
 
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
@@ -177,20 +194,9 @@ Rules:
             console.print("\nAI RESPONSE:", style="accent")
             console.print("Hint:", style="info")
 
-            # Character-by-character streaming — kept as raw stdout writes
-            # to avoid Rich buffering interfering with the flush trick.
             hint_lines = [l.strip() for l in hint.split('\n') if l.strip()]
             for i, line in enumerate(hint_lines):
-                # Apply italic cyan to the third line (the directive)
-                style_open  = "\033[3;96m" if i == 2 else ""
-                style_close = "\033[0m"    if i == 2 else ""
-                sys.stdout.write(style_open)
-                for ch in line:
-                    sys.stdout.write(ch)
-                    sys.stdout.flush()
-                    time.sleep(0.01)
-                sys.stdout.write(style_close + "\n")
-                sys.stdout.flush()
+                _write_line(line, italic_cyan=(i == 2))
             return
 
         except Exception as e:
