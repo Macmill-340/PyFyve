@@ -30,6 +30,9 @@ def main():
     progress   = load_progress()
 
     console.print("\n Welcome to PyFyve\n", style="accent")
+    console.print('''
+    
+    ''')
     console.print("=" * 60, style="separator")
     console.print("  ⚠  BEFORE YOU START", style="warning")
     console.print("=" * 60, style="separator")
@@ -102,7 +105,7 @@ def main():
 
                     # Search link only for non-standard errors
                     if not result["is_standard"] and result.get("raw_err_str"):
-                        query      = f"python {result['raw_err_str']} {user_code.strip()}"
+                        query      = f"python code: {user_code.strip()} error: {result['raw_err_str']} "
                         search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
                         console.print("\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
