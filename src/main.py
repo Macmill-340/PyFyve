@@ -14,9 +14,7 @@ LESSON_DIR = "lessons"
 
 
 def clear_screen():
-    os.system("cls" if os.name == "nt" else "clear")
     apply_terminal_theme()
-
 
 def main():
     clear_screen()

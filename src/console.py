@@ -1,52 +1,7 @@
-import os
 import sys
+import atexit
 from rich.console import Console
 from rich.theme import Theme
-
-# ANSI sequences. Centralised here so ai_response.py can import them too.
-ANSI_BG  = "\033[48;2;45;45;45m"    # grey background  RGB(45,45,45)
-ANSI_FG  = "\033[38;2;240;240;240m"  # white foreground RGB(240,240,240)
-IN_WT    = bool(os.environ.get("WT_SESSION"))
-
-
-def apply_terminal_theme():
-    """
-    Full clear + set background/foreground. Use on clear_screen() and after
-    the code editor subprocess closes (to wipe black areas before printing results).
-    """
-    if IN_WT:
-        # Set background, set foreground, clear entire screen, move cursor to top-left.
-        # \033[2J fills ALL terminal cells with the current background — this is the
-        # only way to make blank areas grey, not just text characters.
-        sys.stdout.write(f"{ANSI_BG}{ANSI_FG}\033[2J\033[H")
-        sys.stdout.flush()
-
-
-def pyinput(prompt=""):
-    """
-    Replacement for console.input() / input() throughout the app.
-
-    Rich's console.input() renders its prompt and then resets ANSI state
-    with \\033[0m before Python reads input. The OS then echoes typed
-    characters using the terminal's default background (black).
-
-    This function renders the prompt with Rich, then immediately re-asserts
-    the ANSI background codes BEFORE input() is called, so the OS echoes
-    keystrokes on the correct grey background.
-    """
-    if prompt:
-        # end="" so no newline — cursor stays on the same line for the user to type
-        console.print(prompt, style="prompt", end="")
-    if IN_WT:
-        # Re-assert background AFTER Rich has finished rendering (and resetting)
-        sys.stdout.write(ANSI_BG + ANSI_FG)
-        sys.stdout.flush()
-    return input()
-
-
-# Apply once at import time so the setup screen already has the grey background.
-apply_terminal_theme()
-
 
 pyfyve_theme = Theme({
     "default":    "white",
@@ -57,18 +12,31 @@ pyfyve_theme = Theme({
     "info":       "dim white",
     "prompt":     "bold white",
     "task":       "bold white",
-    "hint_line1": "white",
-    "hint_line2": "white",
-    "hint_line3": "italic cyan",
     "separator":  "dim white",
 })
 
-console = Console(
-    theme=pyfyve_theme,
-    highlight=False,
-    style="on rgb(45,45,45)",
-)
+# Instantiate Console without hardcoded background styles
+# Let the terminal's native background (OSC 11) do the work.
+console = Console(theme=pyfyve_theme, highlight=False)
 
+def apply_terminal_theme():
+    """Sets the terminal's native background/foreground for this session."""
+    # OSC 11: Background #2D2D2D | OSC 10: Foreground #F0F0F0
+    sys.stdout.write("\033]11;#2D2D2D\007\033]10;#F0F0F0\007\033[0m\033[2J\033[3J\033[H")
+    sys.stdout.flush()
+
+def reset_terminal_theme():
+    """Restores the user's original terminal colors on exit."""
+    sys.stdout.write("\033]110\007\033]111\007\033[0m\033[2J\033[H")
+    sys.stdout.flush()
+
+atexit.register(reset_terminal_theme)
+apply_terminal_theme()
+
+def pyinput(prompt=""):
+    if prompt:
+        console.print(prompt, style="prompt", end="")
+    return input()
 
 def print_separator():
     console.print("=" * 60, style="separator")

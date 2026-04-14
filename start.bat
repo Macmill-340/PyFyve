@@ -3,42 +3,30 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 title PyFyve
 
-:: ── WINDOWS TERMINAL DETECTION & RELAUNCH ─────────────────────────────────────
-:: WT_SESSION is set by Windows Terminal for every process running inside it.
-:: If it's not set, we're in cmd — try to move to Windows Terminal for better visuals.
+:: ── SET THEME IMMEDIATELY ──
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
+cls
 
+:: ── WINDOWS TERMINAL RELAUNCH ──
 if defined WT_SESSION goto :inside_wt
 
-:: Check if Windows Terminal is already installed
 where wt >nul 2>&1
-if %errorlevel% equ 0 goto :relaunch_in_wt
-
-:: Not installed — try to install silently (non-blocking: if it fails, continue in cmd)
-echo [ .. ] Installing Windows Terminal for better visuals...
-winget install --id 9N0DX20HK701 --source msstore --accept-package-agreements --accept-source-agreements --silent >nul 2>&1
 if %errorlevel% equ 0 (
-    where wt >nul 2>&1
-    if %errorlevel% equ 0 goto :relaunch_in_wt
+    wt --size 150,45 --title "PyFyve" cmd /c "cd /d \"%~dp0\" && \"%~f0\""
+    exit /b
 )
-:: WT install failed or unavailable — fall through to run in cmd normally
-echo [ .. ] Running in standard terminal.
-goto :inside_wt
-
-:relaunch_in_wt
-:: --size sets the WT window size in columns x rows at launch.
-:: mode con cannot resize WT — this is the correct way to do it.
-wt --size 150,45 --title "PyFyve" cmd /c "cd /d \"%~dp0\" && \"%~f0\""
-exit /b
 
 :inside_wt
-:: ── FROM HERE DOWN: normal startup regardless of terminal ─────────────────────
-color 0F
-:: mode con here only affects cmd fallback — WT window size is already set above via --size
+:: Ensure the theme is set inside the WT session too
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
+cls
 mode con: cols=150 lines=45
 
 echo ===================================================
 echo        PyFyve Initializing...
 echo ===================================================
+
+:: ... Rest of your script (Python checks, Venv, Pip, etc.) ...
 
 :: 1. PYTHON CHECK & INSTALL
 echo [ .. ] Verifying Python Environment...

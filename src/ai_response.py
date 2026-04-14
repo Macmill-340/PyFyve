@@ -1,43 +1,23 @@
-import os
 import sys
 import ollama
 import time
 import json
 from console import console
 
-# ANSI sequences used for the typewriter output.
-# These must match what apply_terminal_theme() sets so the typewriter text
-# looks consistent with the rest of the terminal.
-_BG = "\033[48;2;45;45;45m"   # grey background  RGB(45,45,45)
-_FG = "\033[38;2;240;240;240m" # white foreground RGB(240,240,240)
-_IN_WT = bool(os.environ.get("WT_SESSION"))
-
-
 def _write_line(text, italic_cyan=False):
-    """
-    Write one hint line to stdout character-by-character with a typewriter effect.
-    Maintains the grey background on every character, including when italic cyan
-    styling is applied and then reset for line 3.
-    """
-    if _IN_WT:
-        sys.stdout.write(_BG + _FG)
-
+    """Write one hint line with typewriter effect."""
     if italic_cyan:
-        sys.stdout.write("\033[3;96m")  # italic bright cyan
+        sys.stdout.write("\033[3;96m") # Italic Cyan
 
     for ch in text:
         sys.stdout.write(ch)
         sys.stdout.flush()
         time.sleep(0.01)
 
-    if italic_cyan:
-        # \033[0m resets everything including background — restore immediately.
-        sys.stdout.write("\033[0m")
-        if _IN_WT:
-            sys.stdout.write(_BG + _FG)
-
-    sys.stdout.write("\n")
+    sys.stdout.write("\033[0m\n") # Reset and Newline
     sys.stdout.flush()
+
+# ... get_response function continues as normal ...
 
 
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
