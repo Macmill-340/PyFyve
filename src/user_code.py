@@ -9,7 +9,7 @@ from contextlib import redirect_stdout
 
 def user_input(task, reset_file):
     filename = "user_workspace.py"
-    code_seperator = "# Write your code here:"
+    code_separator = "# Write your code here:"
 
     if reset_file or not os.path.exists(filename):
         with open(filename, "w", encoding="utf-8") as f:
@@ -21,7 +21,7 @@ def user_input(task, reset_file):
             f.write('3. EXIT this text editor to run your code (Alt + F4).\n')
             f.write('"""\n\n')
             if reset_file:
-                f.write(f"{code_seperator}\n")
+                f.write(f"{code_separator}\n")
 
     # Try notepad++ first, fall back to windows notepad otherwise
     try:
@@ -37,7 +37,7 @@ def user_input(task, reset_file):
     with open(filename, "r") as f:
         workspace_content = f.read()
 
-    code_parts = workspace_content.split(code_seperator)
+    code_parts = workspace_content.split(code_separator)
     separated_code = code_parts[1].strip()
     return separated_code
 

@@ -118,7 +118,7 @@ def main():
                         console.print(f"\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
 
-                    # AI hint fires for ALL errors except security blocks
+                        # AI hint fires only for non-standard and non-security errors
                         if result["status"] != "sec_error" and result.get("raw_err_str"):
                             console.print("\nFetching AI hint...", style="info")
                             try:
