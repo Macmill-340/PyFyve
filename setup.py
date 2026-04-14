@@ -344,8 +344,8 @@ def main():
     print("\n[ OK ] Setup complete. Launching PyFyve...")
     time.sleep(1)
 
-    if os.path.exists("main.py"):
-        result = subprocess.run([sys.executable, "main.py"])
+    if os.path.exists("src/main.py"):
+        result = subprocess.run([sys.executable, "src/main.py"])
         sys.exit(result.returncode)
     else:
         print("[ EX ] main.py not found. Your installation may be incomplete.")
