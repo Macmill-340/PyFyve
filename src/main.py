@@ -1,11 +1,9 @@
 import os
-import re
 import time
 import sys
 import glob
 import urllib.parse
-from console import console
-from console import apply_terminal_theme
+from console import console, apply_terminal_theme
 from validator_test import validate
 from ai_response import get_response
 from user_code import exec_code, user_input
@@ -18,25 +16,6 @@ LESSON_DIR = "lessons"
 def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
     apply_terminal_theme()
-
-
-def get_search_url(raw_err_str, user_code):
-    """Build a Google search URL containing the error and the specific offending line."""
-    offending_line = ""
-    try:
-        match = re.search(r'line[:\s]+(\d+)', raw_err_str, re.IGNORECASE)
-        if match:
-            lineno = int(match.group(1))
-            lines = user_code.split('\n')
-            if 1 <= lineno <= len(lines):
-                offending_line = lines[lineno - 1].strip()
-    except Exception:
-        pass
-
-    query = f"python {raw_err_str}"
-    if offending_line:
-        query += f" {offending_line}"
-    return f"https://www.google.com/search?q={urllib.parse.quote(query)}"
 
 
 def main():
@@ -53,7 +32,16 @@ def main():
     progress   = load_progress()
 
     console.print("\n Welcome to PyFyve\n", style="accent")
-    console.input("Press Enter to continue to lessons...")
+    console.print("=" * 60, style="separator")
+    console.print("  ⚠  BEFORE YOU START", style="warning")
+    console.print("=" * 60, style="separator")
+    console.print("  · Windows only — Linux/Mac not yet supported.", style="info")
+    console.print("  · Infinite Loop Timeout is yet to be implemented. Be careful when running loops.", style="info")
+    console.print("  · Lesson content is placeholder — full curriculum in progress.", style="info")
+    console.print("  · AI handles common syntax and runtime errors best.", style="info")
+    console.print("  · No hints when code runs but gives the wrong result.", style="info")
+    console.print("=" * 60, style="separator")
+    console.input("\nPress Enter to continue to lessons...")
 
     while True:
         if progress >= len(lesson_files):
@@ -89,10 +77,10 @@ def main():
                     user_code = user_input(task, reset_file)
                     result    = exec_code(user_code)
 
-                    console.print(f"\nYour code:", style="info")
+                    console.print("\nYour code:", style="info")
                     console.print(user_code)
                     time.sleep(1)
-                    console.print(f"\nOutput:", style="info")
+                    console.print("\nOutput:", style="info")
                     console.print(result['output'])
                     time.sleep(1)
 
@@ -112,14 +100,14 @@ def main():
                         console.input("\nPress Enter to continue to the next lesson...")
                         break
 
-                    # Show search link only for non-standard (uncommon) errors
+                    # Search link only for non-standard errors
                     if not result["is_standard"] and result.get("raw_err_str"):
-                        search_url = get_search_url(result["raw_err_str"], user_code)
-                        console.print(f"\nThis is an uncommon error. Try searching for it:", style="info")
+                        query      = f"python {result['raw_err_str']} {user_code.strip()}"
+                        search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
+                        console.print("\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
 
-                        # AI hint fires only for non-standard and non-security errors
-                        if result["status"] != "sec_error" and result.get("raw_err_str"):
+                        if result["status"] != "sec_error":
                             console.print("\nFetching AI hint...", style="info")
                             try:
                                 get_response(
@@ -140,7 +128,6 @@ def main():
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
             else:
-                # Lesson has no task (intro/reading lesson) — auto-advance
                 progress  += 1
                 reset_file = True
                 save_progress(progress)
