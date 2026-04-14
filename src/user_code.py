@@ -1,4 +1,5 @@
 import builtins
+from console import console
 import io
 import os
 import ast
@@ -28,11 +29,11 @@ def user_input(task, reset_file):
         if os.path.exists("npp/npp.exe"):
             subprocess.run(["npp/npp.exe", filename], check=True)
         else:
-            print("[Note] Bundled editor not found — opening with Notepad.")
+            console.print("[Note] Bundled editor not found — opening with Notepad.")
             subprocess.run(["notepad.exe", filename], check=True)
     except Exception as e:
-        print(f"Error opening editor: {e}")
-        input(f"Please edit '{filename}' manually, save it, and press [Enter] here...")
+        console.print(f"Error opening editor: {e}")
+        console.input(f"Please edit '{filename}' manually, save it, and press [Enter] here...")
 
     with open(filename, "r") as f:
         workspace_content = f.read()
