@@ -1,28 +1,36 @@
 import os
 from rich.console import Console
 from rich.theme import Theme
+
 def apply_terminal_theme():
+
     if os.environ.get("WT_SESSION"):
-        # Dark grey background, white foreground, clear screen
+        # Set background RGB(45,45,45), foreground RGB(240,240,240), clear screen
         print("\033[48;2;45;45;45m\033[38;2;240;240;240m\033[2J\033[H", end="", flush=True)
 
-# All colours are defined here. Change them in one place.
+# Apply once at import time for the initial launch screen.
+apply_terminal_theme()
+
 pyfyve_theme = Theme({
-    "default":      "white",
-    "accent":       "bold cyan",           # lesson titles, section headers
-    "success":      "bold green",          # ✅ pass messages
-    "warning":      "bold yellow",         # ⚠️ watch out messages
-    "error":        "bold red",            # ❌ fail messages
-    "info":         "dim white",           # secondary info, separators
-    "prompt":       "bold white",          # input prompts
-    "task":         "bold white",          # YOUR TASK text
-    "hint_line1":   "white",               # AI hint sentence 1
-    "hint_line2":   "white",              # AI hint sentence 2
-    "hint_line3":   "italic cyan",        # AI hint sentence 3 (the question)
-    "separator":    "dim white",          # "═" dividers
+    "default":    "white",
+    "accent":     "bold cyan",
+    "success":    "bold green",
+    "warning":    "bold yellow",
+    "error":      "bold red",
+    "info":       "dim white",
+    "prompt":     "bold white",
+    "task":       "bold white",
+    "hint_line1": "white",
+    "hint_line2": "white",
+    "hint_line3": "italic cyan",
+    "separator":  "dim white",
 })
 
-console = Console(theme=pyfyve_theme, highlight=False)
+console = Console(
+    theme=pyfyve_theme,
+    highlight=False,
+    style="on rgb(45,45,45)",
+)
 
 def print_separator():
     console.print("=" * 60, style="separator")

@@ -25,15 +25,16 @@ echo [ .. ] Running in standard terminal.
 goto :inside_wt
 
 :relaunch_in_wt
-:: Relaunch this exact script inside Windows Terminal
-:: --title sets the tab name; the new session will have WT_SESSION set so this block is skipped
+:: Relaunch this exact script inside Windows Terminal.
+:: --title sets the tab name; the new session will have WT_SESSION set so this block is skipped.
 wt --title "PyFyve" cmd /c "cd /d \"%~dp0\" && \"%~f0\""
 exit /b
 
 :inside_wt
 :: ── FROM HERE DOWN: normal startup regardless of terminal ─────────────────────
 color 0F
-mode con: cols=110 lines=38
+
+mode con: cols=150 lines=45
 
 echo ===================================================
 echo        PyFyve Initializing...
