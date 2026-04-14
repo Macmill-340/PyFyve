@@ -13,15 +13,15 @@ GGUF_FILE      = os.path.join(MODEL_DIR, "fyve-ai.Q4_K_M.gguf")
 VERSION_FILE   = os.path.join(MODEL_DIR, "version.txt")
 
 GGUF_URL       = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "fyve-ai.Q4_K_M.gguf?download=true"
 )
 MODELFILE_URL  = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "Modelfile?download=true"
 )
 VERSION_URL    = (
-    "https://huggingface.co/Macmill/qwen-finetune-v3/resolve/main/"
+    "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "version.txt?download=true"
 )
 
