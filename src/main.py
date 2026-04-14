@@ -46,14 +46,14 @@ def main():
 
     if not lesson_files:
         console.print(f"No lessons found in '{LESSON_DIR}/'. Check your installation.", style="warning")
-        input("Press Enter to exit...")
+        console.input("Press Enter to exit...")
         sys.exit(1)
 
     reset_file = True
     progress   = load_progress()
 
     console.print("\n Welcome to PyFyve\n", style="accent")
-    input("Press Enter to continue to lessons...")
+    console.input("Press Enter to continue to lessons...")
 
     while True:
         if progress >= len(lesson_files):
@@ -61,7 +61,7 @@ def main():
             console.print("  🎉 You've completed all lessons! Great work. HIGH FIVE!", style="success")
             console.print("=" * 60, style="separator")
             console.print("\nDo you want to start over?")
-            choice = input("y(yes) or n(no)?: ")
+            choice = console.input("y(yes) or n(no)?: ")
             if choice.lower() in ("y", "yes"):
                 progress = 0
                 save_progress(progress)
@@ -77,12 +77,12 @@ def main():
         lesson = load_lessons(lesson_files, progress)
         if lesson is None:
             console.print("Could not load the next lesson. Check your lessons folder.", style="error")
-            input("Press Enter to exit...")
+            console.input("Press Enter to exit...")
             sys.exit(1)
 
         while True:
             if "task" in lesson:
-                mode = input("\n[1] Write Code  [2] Quit\nChoose: ").strip()
+                mode = console.input("\n[1] Write Code  [2] Quit\nChoose: ").strip()
 
                 if mode == "1":
                     task      = lesson["task"]
@@ -109,7 +109,7 @@ def main():
                         reset_file = True
                         save_progress(progress)
                         console.print("\nHIGH FIVE! Lesson complete.\n", style="success")
-                        input("\nPress Enter to continue to the next lesson...")
+                        console.input("\nPress Enter to continue to the next lesson...")
                         break
 
                     # Show search link only for non-standard (uncommon) errors
@@ -144,7 +144,7 @@ def main():
                 progress  += 1
                 reset_file = True
                 save_progress(progress)
-                input("\nPress Enter to continue to the next lesson...")
+                console.input("\nPress Enter to continue to the next lesson...")
                 break
 
 
