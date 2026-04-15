@@ -16,6 +16,14 @@ Items marked ✅ are done. Everything else is planned or in progress.
 
 ---
 
+## Practical Upgrades & Polish
+- [ ] **Input Mocking** — Support `input()` calls by feeding values from the lesson JSON.
+- [ ] **File Watcher** — Auto-run code on `Ctrl+S` (save) instead of requiring editor exit.
+- [ ] **Visual Progress** — Add a constant progress bar or "Lesson X of Y" header.
+- [ ] **Attempt Tracking** — AI hints become slightly more detailed if the user fails 3+ times.
+
+---
+
 ## Editor & User Experience
 
 - ✅ Bundled Notepad++ editor on Windows
@@ -33,7 +41,7 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - [ ] **Practice exercise mode** — a separate mode accessible from the main menu, distinct from lessons. Exercises are harder, have no tutorial text, and test the same concepts with less hand-holding. Uses a separate `exercises/` folder with the same JSON format. No progress saved — pure practice.
 - [ ] **Solution reveal block** — lessons and exercises can optionally include a `"solution"` field in the JSON that is only shown after the escape hatch triggers or enough failed attempts. Never displayed during normal play.
 - [ ] **Better source_check failure messages** — the current message ("It is suspected you are not using the methods...") is too generic and often misleading. The message should reflect the actual requirement that failed, not imply a general method-usage issue.
-- [ ] **Fresh Notepad++ portable** — replace the current bundled npp.exe with a clean portable build with dark mode enabled as the only non-default setting.
+- [ ] **Local session stats** — track attempts per lesson and most common errors, saved quietly to `stats.json`. Useful for spotting poorly written lessons.
 
 ---
 
@@ -46,7 +54,6 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - ✅ Ambiguous runtime errors (NameError, TypeError) removed from static hint map — AI handles these since the cause varies too much for a single fixed message
 - [ ] **Hints for wrong answers** — when code runs fine but gives the wrong output or wrong variable value, the AI fires but was not trained on these cases. Needs a dedicated training path: a second set of examples where the error is a wrong value or wrong output, and the hint guides toward the logic mistake. This is the next major AI feature.
 - [ ] **Expand model training data** — known gaps in the current 555-example dataset: trailing comma creating tuples, stray brackets in unusual positions, uncommon punctuation errors. These need new training examples before the model handles them reliably.
-- [ ] **Remove Ollama dependency** — long-term goal is to run the AI as a Python library directly, with no external app required.
 
 ---
 
@@ -58,7 +65,7 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - ✅ Float-numbered lesson files so new lessons can be inserted anywhere without renaming
 - ✅ Lessons without a task (intro/reading lessons) are supported and auto-advance
 - [ ] **Write the full beginner curriculum** — current lessons are functional placeholders. Need: While Loops, Functions, Dictionaries, and more before the curriculum is complete.
-- [ ] **Multi-step lessons** — walk through a concept in 2-3 connected tasks within one lesson before moving on. Blocked on the multiple tasks UX work above.
+- [ ] **Multi-Step lessons** — walk through a concept in 2-3 connected tasks within one lesson before moving on.
 - [ ] **Nested data checks** — validator currently can't check inside nested structures like a list of dictionaries.
 - [ ] **Function testing** — run the student's function against multiple hidden test inputs to check it works generally, not just for one case.
 - [ ] **Automated lesson tests** — write a test suite for `validator_test.py` so lesson authors can confirm their validation rules work before publishing.
@@ -75,5 +82,4 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - ✅ Model update check on launch — if a newer version is on HuggingFace and internet is available, user is prompted to update; old model and GGUF cleaned up automatically
 - ✅ No manual terminal commands required from the user
 - [ ] **`.gitignore` audit** — confirm `*.gguf`, `model/`, `user_progress.json`, `user_workspace.py`, `__pycache__/`, `.venv/` are all excluded.
-- [ ] **Local session stats** — track attempts per lesson and most common errors, saved quietly to `stats.json`. Useful for spotting poorly written lessons.
 - [ ] **One-click installer** — bundle Python, the app, and the model into a single `.exe`. Only once the app is fully stable.

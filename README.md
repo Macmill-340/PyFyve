@@ -1,6 +1,15 @@
-# PyFyve
+<div align="center">
 
-A completely offline, free Python tutor that guides you toward the answer — without ever giving it to you.
+<img src="assets/banner.png" alt="Hermes Agent" width="100%">
+
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
+[![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-00FFFF.svg?style=flat-square)](https://ollama.com/)
+[![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)]()
+</div>
+
+## PyFyve
+***A completely offline, free Python tutor that guides you toward the answer — without ever giving it to you.***
 
 ---
 
