@@ -109,7 +109,3 @@ if exist "requirements.txt" (
 :: 4. LAUNCH
 echo [ .. ] Starting PyFyve Setup...
 python setup.py
-
-if %ERRORLEVEL% NEQ 0 (
-    pause
-)

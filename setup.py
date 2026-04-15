@@ -215,13 +215,23 @@ def register_model(exe):
         return False
 
 
+def _cleanup_temps(*paths):
+    """Remove any partially downloaded temp files to avoid leaving stale data on disk."""
+    for path in paths:
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+
 def check_for_model_update(exe):
     """
     If internet is available, check if a newer model version exists.
-    Update order (critical): unregister → delete GGUF → download Modelfile →
-    download GGUF → register. This ensures we never register a partial update.
-    If download fails at any point, the user is told AI hints are unavailable
-    and the app continues without them.
+    Safe update order: download both files to TEMP paths first, then swap.
+    The existing model is never touched until both downloads fully succeed.
+    If any download fails, temp files are cleaned up and the current model
+    is untouched. The app continues with the existing model in all failure cases.
     """
     print("[ .. ] Checking for model updates...")
     remote_version = get_remote_version()
@@ -246,24 +256,27 @@ def check_for_model_update(exe):
         print("[ .. ] Skipping update. Continuing with current model.")
         return
 
-    # Step 1: Remove old model from Ollama FIRST (before touching files)
-    unregister_model(exe)
+    # Download both files to temp paths first.
+    # The existing model is NOT touched until both downloads fully succeed.
+    tmp_modelfile = MODEL_FILE + ".tmp"
+    tmp_gguf      = GGUF_FILE  + ".tmp"
 
-    # Step 2: Delete old GGUF to free space
-    delete_gguf()
-
-    # Step 3: Download fresh Modelfile (covers Modelfile changes too)
     print("[ .. ] Downloading updated Modelfile...")
-    if not download_file(MODELFILE_URL, MODEL_FILE, "Modelfile"):
-        print("[ EX ] Could not download updated Modelfile. AI hints will be unavailable.")
+    if not download_file(MODELFILE_URL, tmp_modelfile, "Modelfile"):
+        print("[ EX ] Could not download updated Modelfile. Existing model is unchanged.")
+        _cleanup_temps(tmp_modelfile, tmp_gguf)
         return
 
-    # Step 4: Download new GGUF
-    if not download_file(GGUF_URL, GGUF_FILE, "AI model"):
-        print("[ EX ] Model download failed. AI hints will be unavailable until next run.")
+    if not download_file(GGUF_URL, tmp_gguf, "AI model"):
+        print("[ EX ] Model download failed. Existing model is unchanged.")
+        _cleanup_temps(tmp_modelfile, tmp_gguf)
         return
 
-    # Step 5: Register — only reached if both downloads succeeded
+    # Both downloads succeeded — now safe to swap.
+    unregister_model(exe)              # Remove old model from Ollama registry.
+    shutil.move(tmp_modelfile, MODEL_FILE)  # Atomically replace old files.
+    shutil.move(tmp_gguf,      GGUF_FILE)
+
     if register_model(exe):
         save_local_version(remote_version)
         print(f"[ OK ] Model updated to v{remote_version}.")
