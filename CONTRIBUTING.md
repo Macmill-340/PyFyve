@@ -113,17 +113,6 @@ Don't write tasks that can be passed by hardcoding the expected output. If `outp
 
 ---
 
-## Changing the AI Prompt
-
-The few-shot examples in `ai_response.py` are what keep the model's output Socratic. Changes here have outsized effects.
-
-If you change the prompt:
-1. Test it manually across at least 5 different error types before committing
-2. Document what changed and why in the commit message body
-3. Do not remove or reduce the number of few-shot examples
-
----
-
 ## Changing `user_code.py`
 
 ### The `raw_err_str` format
@@ -137,11 +126,7 @@ If you change this format, hint quality will silently degrade. Any change to `ra
 
 ### The `markup=False` requirement
 
-When displaying student code or execution output with `console.print()`, always pass `markup=False`. Without it, Rich interprets brackets in student code (list literals, dictionary keys, etc.) as markup tags and corrupts the display. This applies in `main.py` and anywhere else execution output is printed.
-
-### The `is_standard` flag
-
-`is_standard=True` means a static error message is sufficient and the AI should not fire. `is_standard=False` means the cause varies too much for a fixed message and the AI should generate a hint. When adding new entries to `syn_err_map` or `runt_err_map`, set `is_standard=True`. For any error type you leave out of those maps, the AI fires automatically.
+When displaying student code or execution output with `console.print()`, always pass `markup=False`. Without it, Rich interprets brackets in student code (list literals, dictionary keys, etc.) as markup tags and corrupts the display.
 
 ### The code separator
 
