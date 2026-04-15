@@ -3,14 +3,18 @@ import time
 import sys
 import glob
 import urllib.parse
-from console import console, apply_terminal_theme, pyinput
+from console import console, apply_terminal_theme, reset_terminal_theme, pyinput
 from validator_test import validate
 from ai_response import get_response
 from user_code import exec_code, user_input
 from load_lessons import load_lessons
 from load_progress import load_progress, save_progress
 
-LESSON_DIR = "lessons"
+# Get the directory where main.py actually lives (the 'src' folder)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Go up one level to the project root, then into 'lessons'
+LESSON_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "lessons"))
 
 
 def clear_screen():
@@ -31,8 +35,13 @@ def main():
 
     console.print("\n Welcome to PyFyve\n", style="accent")
     console.print('''
-    
-    ''')
+██████╗ ██╗   ██╗███████╗██╗   ██╗██╗   ██╗███████╗
+██╔══██╗╚██╗ ██╔╝██╔════╝╚██╗ ██╔╝██║   ██║██╔════╝
+██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ ██║   ██║█████╗  
+██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ╚██╗ ██╔╝██╔══╝  
+██║        ██║   ██║        ██║    ╚████╔╝ ███████╗
+╚═╝        ╚═╝   ╚═╝        ╚═╝     ╚═══╝  ╚══════╝
+    ''', style="accent")
     console.print("=" * 60, style="separator")
     console.print("  ⚠  BEFORE YOU START", style="warning")
     console.print("=" * 60, style="separator")
@@ -65,9 +74,10 @@ def main():
         clear_screen()
         lesson = load_lessons(lesson_files, progress)
         if lesson is None:
-            console.print("Could not load the next lesson. Check your lessons folder.", style="error")
-            pyinput("Press Enter to exit...")
-            sys.exit(1)
+            console.print(f"Skipping corrupted lesson file: {lesson_files[progress]}", style="warning")
+            progress += 1
+            save_progress(progress)
+            continue  # Jump back to start of while loop
 
         while True:
             if "task" in lesson:
@@ -76,10 +86,9 @@ def main():
                 if mode == "1":
                     task      = lesson["task"]
                     user_code = user_input(task, reset_file)
-                    # Note: apply_terminal_theme() is called inside user_input() after
-                    # the editor closes, so the screen is already clean and grey here.
                     result    = exec_code(user_code)
 
+                    console.print("=" * 150, style="separator")
                     console.print("\nYour code:", style="info")
                     console.print(user_code)
                     time.sleep(1)
@@ -141,4 +150,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        reset_terminal_theme()

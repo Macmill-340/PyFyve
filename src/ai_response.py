@@ -17,8 +17,6 @@ def _write_line(text, italic_cyan=False):
     sys.stdout.write("\033[0m\n") # Reset and Newline
     sys.stdout.flush()
 
-# ... get_response function continues as normal ...
-
 
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
     system_prompt = """You are a Socratic Python Tutor. You analyse a student's Python error and output ONLY a JSON object with exactly two keys:
