@@ -3,11 +3,11 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 title PyFyve
 
-:: ── SET THEME IMMEDIATELY ──
+:: Apply theme immediately
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
 cls
 
-:: ── WINDOWS TERMINAL RELAUNCH ──
+:: Windows Terminal relaunch
 if defined WT_SESSION goto :inside_wt
 
 where wt >nul 2>&1
@@ -17,7 +17,6 @@ if %errorlevel% equ 0 (
 )
 
 :inside_wt
-:: Ensure the theme is set inside the WT session too
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
 cls
 mode con: cols=150 lines=45
@@ -26,9 +25,7 @@ echo ===================================================
 echo        PyFyve Initializing...
 echo ===================================================
 
-:: ... Rest of your script (Python checks, Venv, Pip, etc.) ...
-
-:: 1. PYTHON CHECK & INSTALL
+:: Python check & install
 echo [ .. ] Verifying Python Environment...
 set "PY_CMD="
 
@@ -50,7 +47,7 @@ if not defined PY_CMD (
     )
     echo [ OK ] Python Install Manager installed.
 
-    :: Refresh PATH from the Windows Registry — avoids needing to restart the terminal
+    :: Refresh PATH from registry
     for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
     for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
     set "PATH=!SYS_PATH!;!USER_PATH!"
@@ -66,7 +63,7 @@ if %errorlevel% neq 0 (
 )
 echo [ OK ] Python is active.
 
-:: 2. VIRTUAL ENVIRONMENT
+:: Virtual environment
 echo [ .. ] Verifying virtual environment...
 if not exist ".venv\Scripts\activate" (
     echo [ .. ] Creating .venv...
@@ -80,7 +77,7 @@ if not exist ".venv\Scripts\activate" (
 
 call "%~dp0.venv\Scripts\activate"
 
-:: 3. INSTALL / UPDATE DEPENDENCIES
+:: Install/update dependencies
 if exist "requirements.txt" (
     set "REQ_HASH_FILE=.venv\.req_hash"
     set "CURRENT_HASH="
@@ -106,6 +103,6 @@ if exist "requirements.txt" (
     echo [ !! ] requirements.txt not found. Skipping library install.
 )
 
-:: 4. LAUNCH
+:: Launch
 echo [ .. ] Starting PyFyve Setup...
 python setup.py

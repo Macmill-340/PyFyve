@@ -10,15 +10,14 @@ from user_code import exec_code, user_input
 from load_lessons import load_lessons
 from load_progress import load_progress, save_progress
 
-# Get the directory where main.py actually lives (the 'src' folder)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Go up one level to the project root, then into 'lessons'
 LESSON_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "lessons"))
 
 
 def clear_screen():
+    """Clear terminal and reapply PyFyve background theme."""
     apply_terminal_theme()
+
 
 def main():
     clear_screen()
@@ -37,19 +36,20 @@ def main():
     console.print('''
 ██████╗ ██╗   ██╗███████╗██╗   ██╗██╗   ██╗███████╗
 ██╔══██╗╚██╗ ██╔╝██╔════╝╚██╗ ██╔╝██║   ██║██╔════╝
-██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ ██║   ██║█████╗  
-██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ╚██╗ ██╔╝██╔══╝  
+██████╔╝ ╚████╔╝ █████╗   ╚████╔╝ ██║   ██║█████╗
+██╔═══╝   ╚██╔╝  ██╔══╝    ╚██╔╝  ╚██╗ ██╔╝██╔══╝
 ██║        ██║   ██║        ██║    ╚████╔╝ ███████╗
 ╚═╝        ╚═╝   ╚═╝        ╚═╝     ╚═══╝  ╚══════╝
     ''', style="accent")
+
     console.print("=" * 60, style="separator")
     console.print("  ⚠  BEFORE YOU START", style="warning")
     console.print("=" * 60, style="separator")
-    console.print("  · Windows only — Linux/Mac not yet supported.", style="info")
-    console.print("  · Infinite Loop Timeout is yet to be implemented. Be careful when running loops.", style="info")
-    console.print("  · Lesson content is placeholder — full curriculum in progress.", style="info")
-    console.print("  · AI handles common syntax and runtime errors best.", style="info")
-    console.print("  · No hints when code runs but gives the wrong result.", style="info")
+    console.print("  - Windows only — Linux/Mac not yet supported.", style="info")
+    console.print("  - Infinite loops will freeze the app. Avoid while True.", style="info")
+    console.print("  - input() is not supported in lessons.", style="info")
+    console.print("  - AI handles common syntax and runtime errors best.", style="info")
+    console.print("  - No hints when code runs but gives the wrong result.", style="info")
     console.print("=" * 60, style="separator")
     pyinput("\nPress Enter to continue to lessons...")
 
@@ -73,11 +73,12 @@ def main():
 
         clear_screen()
         lesson = load_lessons(lesson_files, progress)
+
         if lesson is None:
             console.print(f"Skipping corrupted lesson file: {lesson_files[progress]}", style="warning")
             progress += 1
             save_progress(progress)
-            continue  # Jump back to start of while loop
+            continue
 
         while True:
             if "task" in lesson:
@@ -90,10 +91,10 @@ def main():
 
                     console.print("=" * 150, style="separator")
                     console.print("\nYour code:", style="info")
-                    console.print(user_code)
+                    console.print(user_code, markup=False)
                     time.sleep(1)
                     console.print("\nOutput:", style="info")
-                    console.print(result['output'])
+                    console.print(result['output'], markup=False)
                     time.sleep(1)
 
                     all_passed = True
@@ -112,15 +113,13 @@ def main():
                         pyinput("\nPress Enter to continue to the next lesson...")
                         break
 
-                    # Search link only for non-standard errors
                     if not result["is_standard"] and result.get("raw_err_str"):
                         query      = f"python code: {user_code.strip()} error: {result['raw_err_str']} "
                         search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
                         console.print("\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
 
-                        # AI hint fires for only non-standard errors except security blocks
-                        if result["status"] != "sec_error" and result.get("raw_err_str"):
+                        if result["status"] != "sec_error":
                             console.print("\nFetching AI hint...", style="info")
                             try:
                                 get_response(
@@ -137,11 +136,10 @@ def main():
                 elif mode == "2":
                     console.print("Goodbye!", style="info")
                     sys.exit(0)
-
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
+
             else:
-                # Lesson has no task (intro/reading lesson) — auto-advance
                 progress  += 1
                 reset_file = True
                 save_progress(progress)

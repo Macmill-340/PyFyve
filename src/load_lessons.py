@@ -3,6 +3,7 @@ from console import console, print_separator
 
 
 def load_lessons(lesson_files, progress):
+    """Load and display lesson at lesson_files[progress]."""
     try:
         with open(lesson_files[progress], encoding="utf-8") as f:
             loaded_lesson = json.load(f)

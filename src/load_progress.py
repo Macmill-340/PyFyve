@@ -6,6 +6,7 @@ DEFAULT_PROGRESS_FILE = "user_progress.json"
 
 
 def load_progress(filename=DEFAULT_PROGRESS_FILE):
+    """Read saved lesson index. Returns 0 if file missing/corrupted."""
     if not os.path.isfile(filename) or os.path.getsize(filename) == 0:
         save_progress(0, filename)
         return 0
@@ -20,6 +21,7 @@ def load_progress(filename=DEFAULT_PROGRESS_FILE):
 
 
 def save_progress(progress, filename=DEFAULT_PROGRESS_FILE):
+    """Write current lesson index to disk."""
     try:
         with open(filename, "w") as f:
             json.dump({"finished_lesson_index": progress}, f, indent=4)

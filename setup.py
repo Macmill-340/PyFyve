@@ -5,7 +5,6 @@ import shutil
 import time
 import urllib.request
 
-# --- CONFIG ---
 MODEL_NAME     = "fyve-ai"
 MODEL_DIR      = "model"
 MODEL_FILE     = os.path.join(MODEL_DIR, "Modelfile")
@@ -25,11 +24,9 @@ VERSION_URL    = (
     "version.txt?download=true"
 )
 
-GGUF_SIZE_HINT  = "~2.6 GB"
-OLLAMA_TIMEOUT  = 30
+GGUF_SIZE_HINT = "~2.6 GB"
+OLLAMA_TIMEOUT = 30
 
-
-# ── Ollama location helpers ────────────────────────────────────────────────────
 
 def find_ollama_exe():
     candidates = [
@@ -52,8 +49,6 @@ def find_ollama_app():
             return path
     return None
 
-
-# ── Ollama server helpers ──────────────────────────────────────────────────────
 
 def is_ollama_online():
     try:
@@ -124,10 +119,8 @@ def ensure_ollama_serving():
     sys.exit(1)
 
 
-# ── Download helpers ───────────────────────────────────────────────────────────
-
 def download_file(url, dest_path, label):
-    """Download a file with a live progress bar. Returns True on success."""
+    """Download file with live progress bar. Returns True on success."""
     def show_progress(block_num, block_size, total_size):
         downloaded = block_num * block_size
         if total_size > 0:
@@ -154,7 +147,6 @@ def download_file(url, dest_path, label):
 
 
 def get_remote_version():
-    """Fetch the latest version string from HuggingFace. Returns None if offline."""
     try:
         with urllib.request.urlopen(VERSION_URL, timeout=5) as r:
             return r.read().decode().strip()
@@ -175,10 +167,8 @@ def save_local_version(version):
         f.write(version)
 
 
-# ── Model helpers ──────────────────────────────────────────────────────────────
-
 def unregister_model(exe):
-    """Remove the model from Ollama's registry."""
+    """Remove model from Ollama's registry."""
     print(f"[ .. ] Removing old model from Ollama...")
     try:
         subprocess.run(
@@ -193,14 +183,13 @@ def unregister_model(exe):
 
 
 def delete_gguf():
-    """Delete the local GGUF file to free disk space."""
     if os.path.exists(GGUF_FILE):
         os.remove(GGUF_FILE)
         print("[ OK ] Old model file deleted.")
 
 
 def register_model(exe):
-    """Register the model with Ollama using the Modelfile. Returns True on success."""
+    """Register model with Ollama using Modelfile. Returns True on success."""
     print(f"[ .. ] Registering {MODEL_NAME} with Ollama (this may take a moment)...")
     res = subprocess.run(
         [exe, "create", MODEL_NAME, "-f", MODEL_FILE],
@@ -216,7 +205,6 @@ def register_model(exe):
 
 
 def _cleanup_temps(*paths):
-    """Remove any partially downloaded temp files to avoid leaving stale data on disk."""
     for path in paths:
         if os.path.exists(path):
             try:
@@ -226,13 +214,7 @@ def _cleanup_temps(*paths):
 
 
 def check_for_model_update(exe):
-    """
-    If internet is available, check if a newer model version exists.
-    Safe update order: download both files to TEMP paths first, then swap.
-    The existing model is never touched until both downloads fully succeed.
-    If any download fails, temp files are cleaned up and the current model
-    is untouched. The app continues with the existing model in all failure cases.
-    """
+    """Check for newer model version. Downloads to temp paths first for safety."""
     print("[ .. ] Checking for model updates...")
     remote_version = get_remote_version()
 
@@ -247,7 +229,7 @@ def check_for_model_update(exe):
         return
 
     if local_version:
-        print(f"\n[ !! ] Model update available: v{local_version} → v{remote_version}")
+        print(f"\n[ !! ] Model update available: v{local_version} -> v{remote_version}")
     else:
         print(f"\n[ !! ] Model update available (v{remote_version}).")
 
@@ -256,8 +238,6 @@ def check_for_model_update(exe):
         print("[ .. ] Skipping update. Continuing with current model.")
         return
 
-    # Download both files to temp paths first.
-    # The existing model is NOT touched until both downloads fully succeed.
     tmp_modelfile = MODEL_FILE + ".tmp"
     tmp_gguf      = GGUF_FILE  + ".tmp"
 
@@ -272,9 +252,8 @@ def check_for_model_update(exe):
         _cleanup_temps(tmp_modelfile, tmp_gguf)
         return
 
-    # Both downloads succeeded — now safe to swap.
-    unregister_model(exe)              # Remove old model from Ollama registry.
-    shutil.move(tmp_modelfile, MODEL_FILE)  # Atomically replace old files.
+    unregister_model(exe)
+    shutil.move(tmp_modelfile, MODEL_FILE)
     shutil.move(tmp_gguf,      GGUF_FILE)
 
     if register_model(exe):
@@ -285,13 +264,9 @@ def check_for_model_update(exe):
 
 
 def ensure_model_registered(exe):
-    """
-    Ensure the model is present and registered. Downloads Modelfile and GGUF
-    from HuggingFace if either is missing. Checks for updates if already installed.
-    """
+    """Ensure model is present and registered. Downloads from HuggingFace if missing."""
     os.makedirs(MODEL_DIR, exist_ok=True)
 
-    # Ensure Modelfile exists
     if not os.path.exists(MODEL_FILE):
         print("[ .. ] Modelfile not found. Downloading...")
         if not download_file(MODELFILE_URL, MODEL_FILE, "Modelfile"):
@@ -313,11 +288,9 @@ def ensure_model_registered(exe):
 
     if MODEL_NAME in check.stdout:
         print(f"[ OK ] Model '{MODEL_NAME}' is ready.")
-        # Already installed — check for updates
         check_for_model_update(exe)
         return
 
-    # Not registered — need GGUF
     if not os.path.exists(GGUF_FILE):
         print(f"\n[ !! ] AI model file not found in '{MODEL_DIR}/'.")
         answer = input(f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/n]: ").strip().lower()
@@ -327,7 +300,7 @@ def ensure_model_registered(exe):
                 return
         else:
             print("       Skipping. AI hints will be unavailable.")
-            print("       https://huggingface.co/Macmill/qwen-finetune-v3")
+            print("       https://huggingface.co/Macmill/Fyve-AI")
             return
 
     if register_model(exe):
@@ -335,8 +308,6 @@ def ensure_model_registered(exe):
         if remote_version:
             save_local_version(remote_version)
 
-
-# ── Entry point ────────────────────────────────────────────────────────────────
 
 def main():
     print("\n--- PyFyve Setup ---")

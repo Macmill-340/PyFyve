@@ -4,21 +4,23 @@ import time
 import json
 from console import console
 
+
 def _write_line(text, italic_cyan=False):
-    """Write one hint line with typewriter effect."""
+    """Print one hint sentence with typewriter effect."""
     if italic_cyan:
-        sys.stdout.write("\033[3;96m") # Italic Cyan
+        sys.stdout.write("\033[3;96m")  # Italic + cyan for guiding question
 
     for ch in text:
         sys.stdout.write(ch)
         sys.stdout.flush()
         time.sleep(0.01)
 
-    sys.stdout.write("\033[0m\n") # Reset and Newline
+    sys.stdout.write("\033[0m\n")
     sys.stdout.flush()
 
 
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
+    """Call local AI model and stream Socratic hint to terminal."""
     system_prompt = """You are a Socratic Python Tutor. You analyse a student's Python error and output ONLY a JSON object with exactly two keys:
 1. "reasoning": First, explicitly quote the exact line of code that failed. Then, identify what is structurally missing or wrong with that specific line.
 2. "hint": Exactly 3 sentences separated by newline characters (\\n).
@@ -143,9 +145,15 @@ Rules:
 
         ---
         NOW GENERATE JSON FOR THIS CASE:
-        Task:\n{lesson_task}\n
-        Code:\n{user_code}\n
-        Error:\n{raw_error}\n
+        Task:
+{lesson_task}
+
+        Code:
+{user_code}
+
+        Error:
+{raw_error}
+
         JSON:"""
 
     messages = [
