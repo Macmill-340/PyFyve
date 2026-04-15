@@ -39,7 +39,7 @@ def user_input(task, reset_file):
     # restore_background() alone only sets the colour attribute — blank terminal
     # cells stay black. apply_terminal_theme() clears the screen and fills every
     # cell with grey, giving a clean slate before "Your code:" is printed.
-    apply_terminal_theme()
+    # apply_terminal_theme()
 
     with open(filename, "r") as f:
         workspace_content = f.read()
@@ -76,6 +76,9 @@ def security_check(user_code):
         if isinstance(node, ast.Attribute):
             if node.attr.startswith('__') and node.attr.endswith('__'):
                 return f"Security Error: Dunder attribute access is forbidden."
+        if isinstance(node, ast.Subscript):
+            if isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, str) and node.slice.value.startswith('__'):
+                return "Security Error: Dunder access via subscript is forbidden."
 
     return None
 
@@ -91,7 +94,7 @@ def exec_code(user_code):
             "is_standard": True
         }
 
-    whitelist = ['print', 'range', 'len', 'int', 'str', 'float', 'list', 'dict', 'set', 'bool', 'abs', 'min', 'max', 'sum', 'enumerate']
+    whitelist = ['print', 'range', 'len', 'int', 'str', 'float', 'list', 'dict', 'set', 'bool', 'abs', 'min', 'max', 'sum', 'enumerate', 'type', 'sorted', 'reversed']
     safe_builtins = {name: getattr(builtins, name) for name in whitelist}
     approved_globals = {"__builtins__": safe_builtins}
 

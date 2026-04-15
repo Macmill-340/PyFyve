@@ -55,6 +55,9 @@ def validate(result, rules, user_code):
             shared_keys = user_variables.keys() & target_variables.keys()
             for key in shared_keys:
                 target_type = type_map.get(target_variables[key])
+                if target_type is None:
+                    console.print(f"❌ Lesson configuration error: Unsupported type '{target_variables[key]}'. Contact developer.",style="error")
+                    return "Fail"
                 if not isinstance(user_variables[key], target_type):
                     console.print("❌ Task incomplete — check that the value assigned is of the correct type.", style="error")
                     return "Fail"
