@@ -48,9 +48,10 @@ Optional body — explain why, not what. The diff shows what.
 
 Good:
 ```
-fix: validator now fails loudly for unknown rule types instead of passing silently
-feat: add download prompt for missing model file in setup.py
-lesson: add string methods lesson with source_check
+fix: recover gracefully when code separator is missing from workspace file
+fix: pass markup=False to console.print for user code and output display
+feat: add input() and infinite loop warnings to limitations banner
+lesson: add hello world lesson with output_check
 ```
 
 Bad:
@@ -73,6 +74,7 @@ One logical change per commit. Fixing a bug in `user_code.py` and updating the R
 ```
 # Model files
 *.gguf
+model/
 
 # Runtime-generated files
 user_workspace.py
@@ -124,12 +126,26 @@ If you change the prompt:
 
 ## Changing `user_code.py`
 
+### The `raw_err_str` format
+
 The `raw_err_str` field is the string passed to the AI. Its format must match what the model was trained on:
 
 - Syntax errors: `"Syntax Error in line N: <message>"`
 - Runtime errors: `"ErrorType on line: N: <message>"`
 
-If you change this format, the model's hint quality will silently degrade. Any change to `raw_err_str` requires a comment explaining why the format is what it is.
+If you change this format, hint quality will silently degrade. Any change to `raw_err_str` requires a comment explaining the format.
+
+### The `markup=False` requirement
+
+When displaying student code or execution output with `console.print()`, always pass `markup=False`. Without it, Rich interprets brackets in student code (list literals, dictionary keys, etc.) as markup tags and corrupts the display. This applies in `main.py` and anywhere else execution output is printed.
+
+### The `is_standard` flag
+
+`is_standard=True` means a static error message is sufficient and the AI should not fire. `is_standard=False` means the cause varies too much for a fixed message and the AI should generate a hint. When adding new entries to `syn_err_map` or `runt_err_map`, set `is_standard=True`. For any error type you leave out of those maps, the AI fires automatically.
+
+### The code separator
+
+The workspace file is split on `# Write your code here:` to extract student code. If you rename this sentinel, update it consistently across `user_input()` and test that the recovery path (when the sentinel is missing) still works.
 
 ---
 
@@ -137,8 +153,9 @@ If you change this format, the model's hint quality will silently degrade. Any c
 
 Make sure:
 - The app runs end-to-end after your change
-- You haven't committed `user_progress.json`, `user_workspace.py`, or any `.gguf` file
+- You haven't committed `user_progress.json`, `user_workspace.py`, `model/`, or any `.gguf` file
 - If you changed prompt logic, you tested it manually across multiple error types
+- If you changed `console.print()` calls that display student output, you included `markup=False`
 - The commit message is clear
 
 ---

@@ -1,11 +1,12 @@
 <div align="center">
 
-<img src="assets/banner.png" alt="Hermes Agent" width="100%">
+<img src="assets/banner.png" alt="PyFyve Banner" width="100%">
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-00FFFF.svg?style=flat-square)](https://ollama.com/)
 [![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)]()
+
 </div>
 
 ## PyFyve
@@ -60,15 +61,18 @@ The hint appears in the terminal, one character at a time
 **Steps:**
 
 1. Download or clone this repository
-2. Double-click **start.bat**
-3. The script handles everything automatically:
-   - Creates a Python virtual environment
-   - Installs required libraries
-   - Checks if Ollama is installed and running
-   - Offers to download the AI model if it's not present (~2.6 GB, one-time)
-   - Launches PyFyve
+2. Double-click **`start.bat`** — that's it
+
+`start.bat` handles everything automatically:
+- Creates a Python virtual environment
+- Installs required libraries
+- Checks if Ollama is installed and running (installs it if not)
+- Offers to download the AI model if it's not present (~2.6 GB, one-time)
+- Launches PyFyve
 
 On every run after the first, `start.bat` is fast — it only redoes steps that actually need doing.
+
+> **Note:** Keep `start.bat` in the project root folder and always launch PyFyve by double-clicking it. Do not run `main.py` directly.
 
 ---
 
@@ -76,19 +80,20 @@ On every run after the first, `start.bat` is fast — it only redoes steps that 
 
 ```
 PyFyve/
-├── start.bat
-├── setup.py
+├── start.bat               ← Launch PyFyve by double-clicking this
+├── setup.py                ← Environment checks, Ollama + model setup
 ├── requirements.txt
-├── src/ ← all Python code lives here
-│ ├── main.py
-│ ├── ai_response.py
-│ ├── console.py
-│ ├── validator_test.py
-│ ├── user_code.py
-│ ├── load_lessons.py
-│ └── load_progress.py
-├── lessons/ ← lesson JSON files
-└── models/ ← downloaded on first run (ignored by git)
+├── src/                    ← All Python source files
+│   ├── main.py             ← Lesson loop and entry point
+│   ├── ai_response.py      ← AI hint generation via Ollama
+│   ├── console.py          ← Rich terminal theme and shared UI helpers
+│   ├── validator_test.py   ← Lesson validation rules
+│   ├── user_code.py        ← Editor integration, sandboxed execution
+│   ├── load_lessons.py     ← Load and display lesson JSON
+│   └── load_progress.py    ← Save and restore lesson progress
+├── lessons/                ← Lesson JSON files (numbered, e.g. 01.0_intro.json)
+├── model/                  ← AI model files — downloaded on first run (git-ignored)
+└── npp/                    ← Bundled Notepad++ editor (Windows)
 ```
 
 ---
@@ -110,18 +115,20 @@ Each lesson is a JSON file in `lessons/`:
 }
 ```
 
-**Supported check types:**
-- `variable_check` — checks that variables exist with the right names and values
+**Supported validation types:**
+- `variable_check` — variables exist with the right names and values
 - `output_check` — checks what your code prints
 - `type_check` — checks the data type of a variable (int, str, list, etc.)
 - `source_check` — checks that you used a specific keyword or method
-- `collection_check` — checks lists and dictionaries for size and contents
+- `collection_check` — checks lists and dicts for type, size, and contents
+
+Lessons without a `task` field are treated as reading/intro lessons and advance automatically.
 
 ---
 
 ## The AI Model
 
-The AI that powers PyFyve's hints is a custom fine-tuned model built specifically for this one job: reading a Python error and responding with a Socratic 3-sentence hint. It does not know how to do anything else — it cannot give you the answer, explain concepts freely, or write code for you. That's intentional.
+The AI that powers PyFyve's hints is a custom fine-tuned model built for exactly one job: reading a Python error and responding with a Socratic 3-sentence hint. It cannot give you the answer, explain concepts freely, or write code for you. That's intentional.
 
 The model runs entirely on your machine through Ollama. No internet connection is needed after the initial download.
 
@@ -132,37 +139,35 @@ The model runs entirely on your machine through Ollama. No internet connection i
 **Please read these before using PyFyve. This is a prototype and an honest accounting of what it can and cannot do.**
 
 **Windows only**
-Linux and Mac are not supported. The editor integration uses a bundled Notepad++ (with Notepad as a fallback), which is Windows-specific. Cross-platform support is planned but not yet built.
+Linux and Mac are not supported. The editor integration uses a bundled Notepad++ (with Notepad as a fallback), which is Windows-specific.
 
 **This is a prototype**
-PyFyve is early-stage software built by one developer. Expect rough edges. The goal right now is to validate the core concept — Socratic AI hints for Python beginners — before expanding the feature set.
+PyFyve is early-stage software built by one developer. Expect rough edges.
 
 **The lessons are placeholders**
-The included lessons cover the basic curriculum and are functional, but they are not the final curriculum. They exist to demonstrate the system and are suitable for light use and testing. A more comprehensive set of lessons with harder tasks and better progression is in development.
+The included lessons cover the basic curriculum structure and are functional, but they are not the final curriculum. A more comprehensive set of lessons is in development.
+
+**Infinite loops will freeze the app**
+If you write `while True: pass` or any other infinite loop, the app will freeze with no recovery except closing the terminal. Avoid infinite loops until a timeout is implemented.
+
+**`input()` is not supported**
+Code that calls `input()` will fail with a NameError. The sandbox does not support interactive input — lessons are designed around this constraint.
 
 **The AI model has real limits**
-The model was trained on 555 examples of specific, well-defined Python errors — syntax errors, NameErrors, TypeErrors, IndexErrors, and similar common mistakes. It performs well on what it was trained on. Outside that, it may produce hints that are directionally reasonable but not precisely correct. Specific known limitations:
-
-- **Trailing comma on assignment** — writing `x = 90,` creates a tuple in Python, not an integer. The model has never seen this pattern and may give a vague or slightly inaccurate hint.
-- **Wrong value without an error** — when your code runs without crashing but produces the wrong value (e.g. assigning the right variable name but wrong number), the AI fires but was not trained on these cases. It may still help, but it is not reliable here.
-- **Unusual punctuation errors** — stray commas, extra brackets in unusual positions, or other uncommon syntax mistakes may confuse the model.
-
-**No infinite loop protection**
-If you write `while True: pass` or any other infinite loop, the app will freeze with no way out except closing the terminal window. This is a known issue being worked on.
+The model was trained on 555 examples of specific, well-defined Python errors. It performs well on common syntax and runtime errors. Known gaps: trailing comma creating a tuple (`x = 90,`), stray brackets in unusual positions, and logic errors where code runs without crashing but produces the wrong result.
 
 **No hints for logic errors**
-The AI only fires when Python raises an actual exception. If your code runs without errors but does the wrong thing — calculates the wrong answer, prints the wrong text — validation will fail but the AI cannot help. It has no way to know what your code was supposed to do.
+The AI only fires when Python raises an actual exception. If your code runs without errors but produces the wrong output, validation fails but no hint is given.
 
 ---
 
 ## Roadmap
 
-See [TODO.md](TODO.md) for the full list.
+See [TODO.md](TODO.md) for the full list. Key items coming next:
 
-**What's coming next:**
 - Infinite loop timeout
-- AI hints for wrong answers (not just errors)
-- More lessons covering Strings, Conditionals, Loops, and Functions
+- AI hints for wrong answers (not just exceptions)
+- Full beginner curriculum (While Loops, Functions, Dictionaries)
 - Cross-platform editor support
 
 ---
