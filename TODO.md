@@ -73,7 +73,7 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - ✅ Type mismatch detection — tells the student when they used the wrong data type
 - ✅ Float-numbered lesson files so new lessons insert anywhere without renaming
 - ✅ Lessons without a `task` field auto-advance (reading/intro lessons)
-- [ ] **Hello World lesson** — the very first lesson should be a simple `print("Hello, World!")` task.
+- ✅ **Hello World lesson** — the very first lesson should be a simple `print("Hello, World!")` task.
 - [ ] **Full beginner curriculum** — While Loops, Functions, Dictionaries, String Methods, and more.
 - [ ] **Multi-step lessons** — walk through a concept in 2-3 connected tasks within one lesson.
 - [ ] **Nested data checks** — `collection_check` for nested structures (e.g. a list of dicts).

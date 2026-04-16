@@ -5,8 +5,7 @@
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-00FFFF.svg?style=flat-square)](https://ollama.com/)
-[![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)]()
-
+[![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)](#why-it-works-this-way)
 </div>
 
 ## PyFyve
@@ -52,26 +51,22 @@ The hint appears in the terminal, one character at a time
 
 ## Setup
 
+## Setup
+
 > **Windows only.** Linux and Mac are not supported in this version.
 
-**What you need first:**
-- Python 3.13 ([python.org](https://python.org))
-- [Ollama](https://ollama.com) — the app that runs the AI locally
-
 **Steps:**
-
 1. Download or clone this repository
 2. Double-click **`start.bat`** — that's it
 
-`start.bat` handles everything automatically:
-- Creates a Python virtual environment
-- Installs required libraries
-- Checks if Ollama is installed and running (installs it if not)
+`start.bat` handles everything automatically. If you don't already have them, it will even install the prerequisites for you:
+- **Python 3.13** (Installed via Winget if missing)
+- **Ollama** (Installed automatically if missing)
+- Creates a Python virtual environment and installs required libraries
 - Offers to download the AI model if it's not present (~2.6 GB, one-time)
 - Launches PyFyve
 
-On every run after the first, `start.bat` is fast — it only redoes steps that actually need doing.
-
+On every run after the first, `start.bat` is lightning fast — it simply verifies your environment in a few seconds and launches straight into the lessons.
 > **Note:** Keep `start.bat` in the project root folder and always launch PyFyve by double-clicking it. Do not run `main.py` directly.
 
 ---
