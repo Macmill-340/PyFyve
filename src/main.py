@@ -134,7 +134,8 @@ def main():
                     reset_file = False
 
                 elif mode == "2":
-                    console.print("Goodbye!", style="info")
+                    console.print("\nGoodbye!", style="accent")
+                    time.sleep(2)
                     sys.exit(0)
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
