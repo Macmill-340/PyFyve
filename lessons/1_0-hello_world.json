@@ -1,0 +1,14 @@
+{
+    "id": 1,
+    "author": "Macmill-340",
+    "topic": "Hello, World!",
+    "text": "YOUR FIRST PROGRAM\nEvery programming language has a tradition: the first program you write prints 'Hello, World!' to the screen. Python makes this as simple as it can be.\n\nTHE print() FUNCTION\nA function is a built-in action you can call by writing its name followed by parentheses. Whatever you put inside the parentheses is the input.\n\nprint() displays something on the screen — it is how your program communicates with the user.\n\nSYNTAX:\n    print(\"Hello, World!\")\n\nWhatever you put inside the quotes is printed exactly as written. You can use single or double quotes:\n    print('Hello, World!')     # also works\n\nYou can print anything as text:\n    print(\"Python is running\")\n    print(\"42\")\n\nCOMMON MISTAKES:\nForgetting the parentheses — not valid in Python 3:\n    print \"Hello, World!\"     # SyntaxError\n    print(\"Hello, World!\")    # Correct\n\nForgetting the quotes — Python treats it as a variable name:\n    print(Hello, World!)       # NameError\n    print(\"Hello, World!\")    # Correct",
+    "common_errors": "Missing parentheses — `print \"Hello\"` causes a SyntaxError in Python 3. Always use `print(\"Hello\")`.",
+    "task": "Write a program that prints exactly: Hello, World!",
+    "validation": [
+        {
+            "type": "output_check",
+            "expected_output": "Hello, World!"
+        }
+    ]
+}
