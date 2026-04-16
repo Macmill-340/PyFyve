@@ -3,11 +3,14 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 title PyFyve
 
-:: Apply theme immediately
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
-cls
+:: Full PowerShell path — avoids "not recognized" on minimal Windows VMs
+:: where System32 may not be in the inherited PATH at launch time.
+set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 
-:: Windows Terminal relaunch
+:: ── WINDOWS TERMINAL RELAUNCH ──────────────────────────────────────────────
+:: If already inside a WT session, skip the relaunch and go straight to setup.
+:: The terminal background and colour are set by console.py when Python starts,
+:: so no PowerShell call is needed here.
 if defined WT_SESSION goto :inside_wt
 
 where wt >nul 2>&1
@@ -17,15 +20,17 @@ if %errorlevel% equ 0 (
 )
 
 :inside_wt
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Write-Host -NoNewLine ([char]27 + ']11;#2D2D2D' + [char]7)"
-cls
+:: Set background to dark grey instantly via ANSI escape (no PowerShell delay)
+for /f %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
+echo %ESC%]11;#2D2D2D%ESC%\
 mode con: cols=150 lines=45
+cls
 
 echo ===================================================
 echo        PyFyve Initializing...
 echo ===================================================
 
-:: Python check & install
+:: ── PYTHON CHECK & INSTALL ─────────────────────────────────────────────────
 echo [ .. ] Verifying Python Environment...
 set "PY_CMD="
 
@@ -38,7 +43,7 @@ if not defined PY_CMD (
 )
 
 if not defined PY_CMD (
-    echo [ !! ] Python 3.13 not found. Installing Python Install Manager...
+    echo [ !! ] Python 3.13 not found. Installing via Winget...
     winget install --id 9NQ7512CXL7T --source msstore --accept-package-agreements --accept-source-agreements
     if !errorlevel! neq 0 (
         echo [ EX ] Automatic installation failed.
@@ -47,7 +52,8 @@ if not defined PY_CMD (
     )
     echo [ OK ] Python Install Manager installed.
 
-    :: Refresh PATH from registry
+    :: Refresh PATH from the Windows Registry so the new install is visible
+    :: without requiring a terminal restart.
     for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
     for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
     set "PATH=!SYS_PATH!;!USER_PATH!"
@@ -63,7 +69,7 @@ if %errorlevel% neq 0 (
 )
 echo [ OK ] Python is active.
 
-:: Virtual environment
+:: ── VIRTUAL ENVIRONMENT ────────────────────────────────────────────────────
 echo [ .. ] Verifying virtual environment...
 if not exist ".venv\Scripts\activate" (
     echo [ .. ] Creating .venv...
@@ -77,11 +83,17 @@ if not exist ".venv\Scripts\activate" (
 
 call "%~dp0.venv\Scripts\activate"
 
-:: Install/update dependencies
+:: ── INSTALL / UPDATE DEPENDENCIES ──────────────────────────────────────────
+:: Hash check uses Python (already active) instead of PowerShell.
+:: This avoids a 300-600ms PowerShell cold-start on every launch.
 if exist "requirements.txt" (
     set "REQ_HASH_FILE=.venv\.req_hash"
+
+    :: Write hash to temp file; Python avoids quote-escaping issues in FOR loops
+    python -c "import hashlib; print(hashlib.md5(open('requirements.txt','rb').read()).hexdigest())" > "%TEMP%\pyfyve_hash.tmp" 2>nul
     set "CURRENT_HASH="
-    for /f "delims=" %%H in ('powershell -NoProfile -Command "Get-FileHash requirements.txt -Algorithm MD5 | Select-Object -ExpandProperty Hash"') do set "CURRENT_HASH=%%H"
+    if exist "%TEMP%\pyfyve_hash.tmp" set /p CURRENT_HASH=<"%TEMP%\pyfyve_hash.tmp"
+    del "%TEMP%\pyfyve_hash.tmp" 2>nul
 
     set "STORED_HASH="
     if exist "!REQ_HASH_FILE!" set /p STORED_HASH=<"!REQ_HASH_FILE!"
@@ -103,6 +115,6 @@ if exist "requirements.txt" (
     echo [ !! ] requirements.txt not found. Skipping library install.
 )
 
-:: Launch
+:: ── LAUNCH ─────────────────────────────────────────────────────────────────
 echo [ .. ] Starting PyFyve Setup...
 python setup.py

@@ -84,9 +84,17 @@ def launch_ollama_tray():
 
 def install_ollama():
     print("[ !! ] Ollama not found. Starting installation...")
-    ps_cmd = 'powershell -ExecutionPolicy Bypass -Command "irm https://ollama.com/install.ps1 | iex"'
+    # Use the full path to powershell.exe so this works on minimal Windows VMs
+    # where System32 may not be in the inherited PATH.
+    ps_exe = os.path.join(
+        os.environ.get("SystemRoot", r"C:\Windows"),
+        "System32", "WindowsPowerShell", "v1.0", "powershell.exe"
+    )
     try:
-        subprocess.run(ps_cmd, shell=True, check=True)
+        subprocess.run(
+            [ps_exe, "-ExecutionPolicy", "Bypass", "-Command", "irm https://ollama.com/install.ps1 | iex"],
+            check=True
+        )
         print("[ OK ] Ollama installation complete.")
     except Exception as e:
         print(f"[ EX ] Installation failed: {e}")
