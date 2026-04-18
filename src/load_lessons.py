@@ -14,15 +14,17 @@ def load_lessons(lesson_files, progress):
     print_separator()
     console.print(f"LESSON {loaded_lesson['id']}: {loaded_lesson['topic']}", style="accent")
     print_separator()
-    console.print(loaded_lesson["text"].strip())
-    print_separator()
+    console.print(loaded_lesson["text"].strip(), markup=False)
+    # print_separator()
+    print("")
 
     if "common_errors" in loaded_lesson:
-        console.print(f"WATCH OUT FOR: {loaded_lesson['common_errors']}", style="warning")
-        print_separator()
+        console.print(f"WATCH OUT FOR: {loaded_lesson['common_errors']}", style="warning", markup=False)
+        # print_separator()
+        print("")
 
     if "task" in loaded_lesson:
-        console.print(f"YOUR TASK: {loaded_lesson['task']}", style="task")
+        console.print(f"YOUR TASK: {loaded_lesson['task']}", style="task", markup=False)
         print_separator()
 
     return loaded_lesson

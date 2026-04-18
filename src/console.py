@@ -4,23 +4,24 @@ from rich.console import Console
 from rich.theme import Theme
 
 pyfyve_theme = Theme({
-    "default":    "white",
-    "accent":     "bold cyan",
-    "success":    "bold green",
-    "warning":    "bold yellow",
-    "error":      "bold red",
-    "info":       "dim white",
-    "prompt":     "bold white",
-    "task":       "bold white",
-    "separator":  "dim white",
+    "default":    "#E0E0E0",        # Soft grey base text
+    "accent":     "bold #F5F5DC",   # Antique Parchment (Logo & Headers)
+    "success":    "bold green",     # Standard green for "Correct"
+    "warning":    "#E9AF58",        # Harvest Ochre (The "Important/Caution" color)
+    "limitation": "italic #E9AF58", # Specifically for limitation messages
+    "error":      "bold #E84118",   # Deep red for crashes
+    "info":       "#F5F5DC",        # Subdued metadata
+    "prompt":     "bold #F5F5DC",   # Matches Logo for the input cursor
+    "task":       "bold #CD736E",   # Dusty Rosewood for instructions
+    "hint":       "#F5F5DC",        # Sage (AI Advice)
+    "separator":  "#F5F5DC",        # Subtle division lines
 })
 
 console = Console(theme=pyfyve_theme, highlight=False)
 
-
 def apply_terminal_theme():
-    """Paint terminal background #2D2D2D and clear screen."""
-    sys.stdout.write("\033]11;#2D2D2D\007\033]10;#F0F0F0\007\033[0m\033[2J\033[3J\033[H")
+    """Paint terminal background #2D2D2D and set base text to #E0E0E0."""
+    sys.stdout.write("\033]11;#2D2D2D\007\033]10;#E0E0E0\007\033[0m\033[2J\033[3J\033[H")
     sys.stdout.flush()
 
 

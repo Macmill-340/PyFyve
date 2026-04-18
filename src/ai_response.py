@@ -5,16 +5,19 @@ import json
 from console import console
 
 
-def _write_line(text, italic_cyan=False):
-    """Print one hint sentence with typewriter effect."""
-    if italic_cyan:
-        sys.stdout.write("\033[3;96m")  # Italic + cyan for guiding question
+def write_line(text, italic_sage=False):
+    """Print one hint sentence with typewriter effect in Sage Leaf."""
+    # Base Sage Leaf RGB: 160, 195, 145
+    color_code = "\033[38;2;160;195;145m"
+    if italic_sage:
+        # Adds \033[3; for Italics
+        color_code = "\033[3;38;2;160;195;145m"
 
+    sys.stdout.write(color_code)
     for ch in text:
         sys.stdout.write(ch)
         sys.stdout.flush()
         time.sleep(0.01)
-
     sys.stdout.write("\033[0m\n")
     sys.stdout.flush()
 
@@ -177,13 +180,7 @@ Rules:
             if not reasoning or not hint:
                 raise ValueError("Missing reasoning or hint keys")
 
-            console.print("\nAI RESPONSE:", style="accent")
-            console.print("Hint:", style="info")
-
-            hint_lines = [l.strip() for l in hint.split('\n') if l.strip()]
-            for i, line in enumerate(hint_lines):
-                _write_line(line, italic_cyan=(i == 2))
-            return
+            return hint
 
         except Exception as e:
             if attempt < max_retries:

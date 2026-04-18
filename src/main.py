@@ -3,6 +3,7 @@ import time
 import sys
 import glob
 import urllib.parse
+from ai_response import write_line
 from console import console, apply_terminal_theme, reset_terminal_theme, pyinput
 from validator_test import validate
 from ai_response import get_response
@@ -45,18 +46,18 @@ def main():
     console.print("=" * 60, style="separator")
     console.print("  ⚠  BEFORE YOU START", style="warning")
     console.print("=" * 60, style="separator")
-    console.print("  - Windows only — Linux/Mac not yet supported.", style="info")
-    console.print("  - Infinite loops will freeze the app. Avoid while True.", style="info")
-    console.print("  - input() is not supported in lessons.", style="info")
-    console.print("  - AI handles common syntax and runtime errors best.", style="info")
-    console.print("  - No hints when code runs but gives the wrong result.", style="info")
+    console.print("  - Windows only — Linux/Mac not yet supported.", style="limitation")
+    console.print("  - Infinite loops will freeze the app. Avoid while True.", style="limitation")
+    console.print("  - input() is not supported in lessons.", style="limitation")
+    console.print("  - AI handles common syntax and runtime errors best.", style="limitation")
+    console.print("  - No hints when code runs but gives the wrong result.", style="limitation")
     console.print("=" * 60, style="separator")
     pyinput("\nPress Enter to continue to lessons...")
 
     while True:
         if progress >= len(lesson_files):
             console.print("\n" + "=" * 60, style="separator")
-            console.print("  🎉 You've completed all lessons! Great work. HIGH FIVE!", style="success")
+            console.print("  🎉 You've completed all lessons! Great work!", style="success")
             console.print("=" * 60, style="separator")
             console.print("\nDo you want to start over?")
             choice = pyinput("y(yes) or n(no)?: ")
@@ -89,7 +90,7 @@ def main():
                     user_code = user_input(task, reset_file)
                     result    = exec_code(user_code)
 
-                    console.print("=" * 150, style="separator")
+                    console.print(":" * 150, style="separator")
                     console.print("\nYour code:", style="info")
                     console.print(user_code, markup=False)
                     time.sleep(1)
@@ -109,7 +110,7 @@ def main():
                         progress  += 1
                         reset_file = True
                         save_progress(progress)
-                        console.print("\nHIGH FIVE! Lesson complete.\n", style="success")
+                        console.print("\nCongratulations! You did it. Lesson complete.\n", style="success")
                         pyinput("\nPress Enter to continue to the next lesson...")
                         break
 
@@ -118,16 +119,25 @@ def main():
                         search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
                         console.print("\nThis is an uncommon error. Try searching for it:", style="info")
                         console.print(search_url)
+                        console.print("")
 
                         if result["status"] != "sec_error":
-                            console.print("\nFetching AI hint...", style="info")
-                            try:
-                                get_response(
+                            hint_text = None
+                            with console.status("Fetching AI hint...", spinner="dots", spinner_style="hint"):
+                                hint_text = get_response(
                                     lesson_task=task,
                                     user_code=user_code,
                                     raw_error=result["raw_err_str"]
                                 )
-                            except Exception:
+                            if hint_text:
+                                console.print("\nAI RESPONSE:", style="accent")
+                                console.print("Hint:", style="info")
+
+                                hint_lines = [l.strip() for l in hint_text.split('\n') if l.strip()]
+                                for i, line in enumerate(hint_lines):
+                                    # i == 2 is the 3rd sentence for the Socratic nudge
+                                    write_line(line, italic_sage=(i == 2))
+                            else:
                                 console.print("[AI hint unavailable — continuing without it.]", style="info")
 
                     console.print("\nTry again.\n", style="info")
