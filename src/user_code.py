@@ -27,8 +27,8 @@ def user_input(task, reset_file):
                 f.write(f"{code_separator}\n")
 
     try:
-        if os.path.exists("npp/npp.exe"):
-            subprocess.run(["npp/npp.exe", filename], check=True)
+        if os.path.exists("npp/notepad++.exe"):
+            subprocess.run(["npp/notepad++.exe", filename], check=True)
         else:
             console.print("[Note] Bundled editor not found — opening with Notepad.")
             subprocess.run(["notepad.exe", filename], check=True)
