@@ -1,5 +1,6 @@
 import os
 import sys
+import ssl
 import subprocess
 import shutil
 import time
@@ -11,15 +12,15 @@ MODEL_FILE     = os.path.join(MODEL_DIR, "Modelfile")
 GGUF_FILE      = os.path.join(MODEL_DIR, "fyve-ai.Q4_K_M.gguf")
 VERSION_FILE   = os.path.join(MODEL_DIR, "version.txt")
 
-GGUF_URL       = (
+GGUF_URL      = (
     "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "fyve-ai.Q4_K_M.gguf?download=true"
 )
-MODELFILE_URL  = (
+MODELFILE_URL = (
     "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "Modelfile?download=true"
 )
-VERSION_URL    = (
+VERSION_URL   = (
     "https://huggingface.co/Macmill/Fyve-AI/resolve/main/"
     "version.txt?download=true"
 )
@@ -28,13 +29,84 @@ GGUF_SIZE_HINT = "~2.6 GB"
 OLLAMA_TIMEOUT = 30
 
 
+# ── SSL ────────────────────────────────────────────────────────────────────
+
+def _make_ssl_context():
+    """Return a verified SSL context that works on fresh Windows installs.
+
+    Fresh Windows VMs can have an empty or incomplete system certificate store.
+    certifi (a portable CA bundle) is always available here because it is a
+    transitive dependency of ollama → httpx → certifi, installed by start.bat
+    before setup.py runs. We try it first, then fall back to the system store.
+    SSL verification is never disabled.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        pass
+    return ssl.create_default_context()
+
+
+# ── Download ───────────────────────────────────────────────────────────────
+
+def download_file(url, dest_path, label):
+    """Download a file with a live progress bar. Returns True on success.
+
+    Uses chunked urlopen with a custom SSL context so downloads work on
+    fresh Windows VMs where the system certificate store may be incomplete.
+    """
+    ssl_ctx = _make_ssl_context()
+    opener  = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=ssl_ctx)
+    )
+
+    try:
+        with opener.open(url, timeout=60) as response:
+            total_size = int(response.headers.get("Content-Length", 0) or 0)
+            downloaded = 0
+
+            with open(dest_path, "wb") as out:
+                while True:
+                    chunk = response.read(65536)   # 64 KB chunks
+                    if not chunk:
+                        break
+                    out.write(chunk)
+                    downloaded += len(chunk)
+
+                    if total_size > 0:
+                        pct      = min(100.0, downloaded * 100.0 / total_size)
+                        filled   = int(pct / 2)
+                        bar      = "#" * filled + "-" * (50 - filled)
+                        mb_done  = downloaded / (1024 * 1024)
+                        mb_total = total_size  / (1024 * 1024)
+                        print(
+                            f"\r[ .. ] [{bar}] {pct:5.1f}%  {mb_done:.0f}/{mb_total:.0f} MB",
+                            end="", flush=True
+                        )
+                    else:
+                        mb_done = downloaded / (1024 * 1024)
+                        print(f"\r[ .. ] {mb_done:.1f} MB downloaded...", end="", flush=True)
+
+        print(f"\n[ OK ] {label} downloaded.")
+        return True
+
+    except Exception as e:
+        print(f"\n[ EX ] Download failed: {e}")
+        if os.path.exists(dest_path):
+            os.remove(dest_path)
+        return False
+
+
+# ── Ollama location helpers ────────────────────────────────────────────────
+
 def find_ollama_exe():
     candidates = [
         os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "Ollama", "ollama.exe"),
         os.path.join(os.environ.get("PROGRAMFILES", ""), "Ollama", "ollama.exe"),
     ]
     for path in candidates:
-        if os.path.exists(path):
+        if path and os.path.exists(path):
             return path
     return shutil.which("ollama")
 
@@ -45,12 +117,15 @@ def find_ollama_app():
         os.path.join(os.environ.get("PROGRAMFILES", ""), "Ollama", "ollama app.exe"),
     ]
     for path in candidates:
-        if os.path.exists(path):
+        if path and os.path.exists(path):
             return path
     return None
 
 
+# ── Ollama server helpers ──────────────────────────────────────────────────
+
 def is_ollama_online():
+    """Check if the Ollama server is listening on localhost."""
     try:
         urllib.request.urlopen("http://127.0.0.1:11434", timeout=3)
         return True
@@ -59,6 +134,7 @@ def is_ollama_online():
 
 
 def launch_ollama_tray():
+    """Launch Ollama as a detached background process. Returns True if started."""
     app_exe = find_ollama_app()
     if app_exe:
         subprocess.Popen(
@@ -83,16 +159,18 @@ def launch_ollama_tray():
 
 
 def install_ollama():
+    """Download and run the Ollama installer via PowerShell."""
     print("[ !! ] Ollama not found. Starting installation...")
-    # Use the full path to powershell.exe so this works on minimal Windows VMs
-    # where System32 may not be in the inherited PATH.
+    # Full path avoids "not recognized" errors on minimal VMs where
+    # System32 may not be in the inherited PATH.
     ps_exe = os.path.join(
         os.environ.get("SystemRoot", r"C:\Windows"),
         "System32", "WindowsPowerShell", "v1.0", "powershell.exe"
     )
     try:
         subprocess.run(
-            [ps_exe, "-ExecutionPolicy", "Bypass", "-Command", "irm https://ollama.com/install.ps1 | iex"],
+            [ps_exe, "-ExecutionPolicy", "Bypass", "-Command",
+             "irm https://ollama.com/install.ps1 | iex"],
             check=True
         )
         print("[ OK ] Ollama installation complete.")
@@ -103,6 +181,7 @@ def install_ollama():
 
 
 def ensure_ollama_serving():
+    """Ensure the Ollama server is running, launching it if necessary."""
     print("[ .. ] Checking AI server status...")
     if is_ollama_online():
         print("[ OK ] AI server is online.")
@@ -114,7 +193,7 @@ def ensure_ollama_serving():
         print("       Please start Ollama from the Start Menu and try again.")
         sys.exit(1)
 
-    print(f"[ .. ] Waiting for Ollama to come online ", end="", flush=True)
+    print("[ .. ] Waiting for Ollama to come online ", end="", flush=True)
     for _ in range(OLLAMA_TIMEOUT):
         time.sleep(1)
         print(".", end="", flush=True)
@@ -127,36 +206,20 @@ def ensure_ollama_serving():
     sys.exit(1)
 
 
-def download_file(url, dest_path, label):
-    """Download file with live progress bar. Returns True on success."""
-    def show_progress(block_num, block_size, total_size):
-        downloaded = block_num * block_size
-        if total_size > 0:
-            pct    = min(100.0, downloaded * 100.0 / total_size)
-            filled = int(pct / 2)
-            bar    = "#" * filled + "-" * (50 - filled)
-            mb_done  = downloaded / (1024 * 1024)
-            mb_total = total_size  / (1024 * 1024)
-            print(f"\r[ .. ] [{bar}] {pct:5.1f}%  {mb_done:.0f}/{mb_total:.0f} MB",
-                  end="", flush=True)
-        else:
-            mb_done = downloaded / (1024 * 1024)
-            print(f"\r[ .. ] {mb_done:.1f} MB downloaded...", end="", flush=True)
-
-    try:
-        urllib.request.urlretrieve(url, dest_path, show_progress)
-        print(f"\n[ OK ] {label} downloaded.")
-        return True
-    except Exception as e:
-        print(f"\n[ EX ] Download failed: {e}")
-        if os.path.exists(dest_path):
-            os.remove(dest_path)
-        return False
-
+# ── Version helpers ────────────────────────────────────────────────────────
 
 def get_remote_version():
+    """Fetch the latest model version string from HuggingFace.
+
+    Returns None silently if the machine is offline or the request fails,
+    so callers can skip the update check gracefully.
+    """
     try:
-        with urllib.request.urlopen(VERSION_URL, timeout=5) as r:
+        ssl_ctx = _make_ssl_context()
+        opener  = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=ssl_ctx)
+        )
+        with opener.open(VERSION_URL, timeout=5) as r:
             return r.read().decode().strip()
     except Exception:
         return None
@@ -175,9 +238,11 @@ def save_local_version(version):
         f.write(version)
 
 
+# ── Model helpers ──────────────────────────────────────────────────────────
+
 def unregister_model(exe):
-    """Remove model from Ollama's registry."""
-    print(f"[ .. ] Removing old model from Ollama...")
+    """Remove the model from Ollama's registry."""
+    print("[ .. ] Removing old model from Ollama...")
     try:
         subprocess.run(
             [exe, "rm", MODEL_NAME],
@@ -185,19 +250,13 @@ def unregister_model(exe):
             encoding="utf-8", errors="replace",
             timeout=15
         )
-        print(f"[ OK ] Old model removed from Ollama.")
+        print("[ OK ] Old model removed from Ollama.")
     except Exception as e:
         print(f"[ !! ] Could not remove old model from Ollama: {e}")
 
 
-def delete_gguf():
-    if os.path.exists(GGUF_FILE):
-        os.remove(GGUF_FILE)
-        print("[ OK ] Old model file deleted.")
-
-
 def register_model(exe):
-    """Register model with Ollama using Modelfile. Returns True on success."""
+    """Register the model with Ollama using the Modelfile. Returns True on success."""
     print(f"[ .. ] Registering {MODEL_NAME} with Ollama (this may take a moment)...")
     res = subprocess.run(
         [exe, "create", MODEL_NAME, "-f", MODEL_FILE],
@@ -206,13 +265,13 @@ def register_model(exe):
     if res.returncode == 0:
         print(f"[ OK ] Model '{MODEL_NAME}' registered.")
         return True
-    else:
-        print(f"[ EX ] Registration failed.")
-        print(f"       Try manually: ollama create {MODEL_NAME} -f \"{MODEL_FILE}\"")
-        return False
+    print("[ EX ] Registration failed.")
+    print(f"       Try manually: ollama create {MODEL_NAME} -f \"{MODEL_FILE}\"")
+    return False
 
 
 def _cleanup_temps(*paths):
+    """Remove partial download files, ignoring errors."""
     for path in paths:
         if os.path.exists(path):
             try:
@@ -222,7 +281,12 @@ def _cleanup_temps(*paths):
 
 
 def check_for_model_update(exe):
-    """Check for newer model version. Downloads to temp paths first for safety."""
+    """Check if a newer model version exists on HuggingFace.
+
+    Skips silently if offline. Both files are downloaded to temp paths before
+    the existing model is touched — if either download fails, the current
+    model is left completely unchanged. The user always has the choice to skip.
+    """
     print("[ .. ] Checking for model updates...")
     remote_version = get_remote_version()
 
@@ -241,7 +305,9 @@ def check_for_model_update(exe):
     else:
         print(f"\n[ !! ] Model update available (v{remote_version}).")
 
-    answer = input("       Download update now? (~2.6 GB, existing model will be replaced) [Y/n]: ").strip().lower()
+    answer = input(
+        "       Download update now? (~2.6 GB, existing model will be replaced) [Y/n]: "
+    ).strip().lower()
     if answer not in ("", "y", "yes"):
         print("[ .. ] Skipping update. Continuing with current model.")
         return
@@ -260,9 +326,10 @@ def check_for_model_update(exe):
         _cleanup_temps(tmp_modelfile, tmp_gguf)
         return
 
+    # Both downloads succeeded — safe to swap
     unregister_model(exe)
     shutil.move(tmp_modelfile, MODEL_FILE)
-    shutil.move(tmp_gguf,      GGUF_FILE)
+    shutil.move(tmp_gguf, GGUF_FILE)
 
     if register_model(exe):
         save_local_version(remote_version)
@@ -272,7 +339,11 @@ def check_for_model_update(exe):
 
 
 def ensure_model_registered(exe):
-    """Ensure model is present and registered. Downloads from HuggingFace if missing."""
+    """Ensure the model is present and registered with Ollama.
+
+    Downloads the Modelfile and GGUF from HuggingFace if either is missing.
+    If the model is already registered, checks for updates instead.
+    """
     os.makedirs(MODEL_DIR, exist_ok=True)
 
     if not os.path.exists(MODEL_FILE):
@@ -299,9 +370,12 @@ def ensure_model_registered(exe):
         check_for_model_update(exe)
         return
 
+    # Model not registered — need the GGUF
     if not os.path.exists(GGUF_FILE):
         print(f"\n[ !! ] AI model file not found in '{MODEL_DIR}/'.")
-        answer = input(f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/n]: ").strip().lower()
+        answer = input(
+            f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/n]: "
+        ).strip().lower()
         if answer in ("", "y", "yes"):
             if not download_file(GGUF_URL, GGUF_FILE, "AI model"):
                 print("[ EX ] Download failed. AI hints will be unavailable.")
@@ -316,6 +390,8 @@ def ensure_model_registered(exe):
         if remote_version:
             save_local_version(remote_version)
 
+
+# ── Entry point ────────────────────────────────────────────────────────────
 
 def main():
     print("\n--- PyFyve Setup ---")

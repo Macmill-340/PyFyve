@@ -3,14 +3,9 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 title PyFyve
 
-:: Full PowerShell path — avoids "not recognized" on minimal Windows VMs
-:: where System32 may not be in the inherited PATH at launch time.
-set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
-
 :: ── WINDOWS TERMINAL RELAUNCH ──────────────────────────────────────────────
-:: If already inside a WT session, skip the relaunch and go straight to setup.
-:: The terminal background and colour are set by console.py when Python starts,
-:: so no PowerShell call is needed here.
+:: If already inside a WT session, skip the relaunch and proceed to setup.
+:: Terminal background is set by console.py the moment Python starts.
 if defined WT_SESSION goto :inside_wt
 
 where wt >nul 2>&1
@@ -20,7 +15,8 @@ if %errorlevel% equ 0 (
 )
 
 :inside_wt
-:: Set background to dark grey instantly via ANSI escape (no PowerShell delay)
+:: Apply dark background via a pure-batch ANSI OSC sequence.
+:: Works in Windows Terminal; harmless no-op in plain cmd.exe.
 for /f %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
 echo %ESC%]11;#2D2D2D%ESC%\
 mode con: cols=150 lines=45
@@ -31,29 +27,65 @@ echo        PyFyve Initializing...
 echo ===================================================
 
 :: ── PYTHON CHECK & INSTALL ─────────────────────────────────────────────────
+:: Decision rationale (do not simplify without reading this):
+::
+::   Winget + Microsoft Store:  Fails with 0x8007052e (Store auth error) on
+::     fresh VMs. Root cause is the Store identity token not being provisioned
+::     yet. Not fixable from a script. Unreliable.
+::
+::   MSIX direct download + Add-AppxPackage:  Requires PowerShell AND
+::     "Sideload apps" policy to be enabled (off by default on fresh Windows 11
+::     Home/Pro VMs). Two independent failure modes.
+::
+::   Python .exe installer (current approach):  No admin rights required,
+::     no Store auth, no sideloading, no PowerShell. curl.exe ships with every
+::     Windows 10 1803+ and all Windows 11 builds. The .exe installer is NOT
+::     being discontinued — the py launcher is just no longer bundled WITH it
+::     from 3.14+, which does not affect us since we detect and set PY_CMD
+::     explicitly. When Python 3.13 reaches end-of-life, update PYTHON_VER and
+::     PYTHON_URL below.
+::
+:: PYTHON_VER is used only for display. PYTHON_URL is the actual download target.
+set "PYTHON_VER=3.13.3"
+set "PYTHON_URL=https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe"
+
 echo [ .. ] Verifying Python Environment...
 set "PY_CMD="
 
+:: Check 1: system Python on PATH
 python --version 2>nul | find "3.13" >nul
 if %errorlevel% equ 0 set "PY_CMD=python"
 
+:: Check 2: py launcher
 if not defined PY_CMD (
     py -3.13 --version >nul 2>&1
     if !errorlevel! equ 0 set "PY_CMD=py -3.13"
 )
 
+:: Check 3: download and install silently
 if not defined PY_CMD (
-    echo [ !! ] Python 3.13 not found. Installing via Winget...
-    winget install --id 9NQ7512CXL7T --source msstore --accept-package-agreements --accept-source-agreements
+    set "PYTHON_INSTALLER=%TEMP%\pyfyve-python-installer.exe"
+
+    echo [ !! ] Python %PYTHON_VER% not found. Downloading installer from python.org...
+    "%SystemRoot%\System32\curl.exe" -L --silent --show-error -o "!PYTHON_INSTALLER!" "%PYTHON_URL%"
     if !errorlevel! neq 0 (
-        echo [ EX ] Automatic installation failed.
-        echo        Please install Python 3.13 manually from https://python.org
+        echo [ EX ] Download failed. Please install Python 3.13 from https://python.org
+        del "!PYTHON_INSTALLER!" 2>nul
         pause & exit /b 1
     )
-    echo [ OK ] Python Install Manager installed.
 
-    :: Refresh PATH from the Windows Registry so the new install is visible
-    :: without requiring a terminal restart.
+    echo [ .. ] Installing Python %PYTHON_VER% ^(this may take a moment^)...
+    "!PYTHON_INSTALLER!" /quiet InstallAllUsers=0 PrependPath=1 Include_pip=1
+    if !errorlevel! neq 0 (
+        echo [ EX ] Installation failed. Please install Python 3.13 from https://python.org
+        del "!PYTHON_INSTALLER!" 2>nul
+        pause & exit /b 1
+    )
+    del "!PYTHON_INSTALLER!" 2>nul
+    echo [ OK ] Python %PYTHON_VER% installed.
+
+    :: Propagate the installer's PATH changes into this session so we don't
+    :: require the user to restart the terminal.
     for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
     for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
     set "PATH=!SYS_PATH!;!USER_PATH!"
@@ -62,10 +94,42 @@ if not defined PY_CMD (
     set "PY_CMD=py -3.13"
 )
 
+:: Verify the resolved Python command actually executes.
+:: If it does not (e.g. a stale PATH entry pointing at a deleted installation),
+:: clear PY_CMD and fall through to re-download rather than aborting with a
+:: cryptic error. This handles the case where the user has manually removed
+:: Python without updating PATH.
 %PY_CMD% --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ EX ] Python was installed but could not be located. Please restart this terminal.
-    pause & exit /b 1
+if !errorlevel! neq 0 (
+    echo [ !! ] Python resolved to '%PY_CMD%' but failed to execute.
+    echo [ .. ] PATH entry may be stale. Re-downloading Python installer...
+    set "PY_CMD="
+    set "PYTHON_INSTALLER=%TEMP%\pyfyve-python-installer.exe"
+
+    "%SystemRoot%\System32\curl.exe" -L --silent --show-error -o "!PYTHON_INSTALLER!" "%PYTHON_URL%"
+    if !errorlevel! neq 0 (
+        echo [ EX ] Download failed. Please install Python 3.13 from https://python.org
+        del "!PYTHON_INSTALLER!" 2>nul
+        pause & exit /b 1
+    )
+
+    echo [ .. ] Installing Python %PYTHON_VER%...
+    "!PYTHON_INSTALLER!" /quiet InstallAllUsers=0 PrependPath=1 Include_pip=1
+    del "!PYTHON_INSTALLER!" 2>nul
+
+    :: Refresh PATH again after the repair install
+    for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%B"
+    for /f "tokens=2*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%B"
+    set "PATH=!SYS_PATH!;!USER_PATH!"
+    set "PATH=%LOCALAPPDATA%\Microsoft\WindowsApps;!PATH!"
+    set "PY_CMD=py -3.13"
+
+    :: Final check — if still broken, the system needs a restart
+    py -3.13 --version >nul 2>&1
+    if !errorlevel! neq 0 (
+        echo [ EX ] Python could not be installed. Please restart this terminal and try again.
+        pause & exit /b 1
+    )
 )
 echo [ OK ] Python is active.
 
@@ -75,21 +139,20 @@ if not exist ".venv\Scripts\activate" (
     echo [ .. ] Creating .venv...
     %PY_CMD% -m venv .venv
     if errorlevel 1 (
-        echo [ EX ] Failed to create venv.
+        echo [ EX ] Failed to create virtual environment.
         pause & exit /b 1
     )
-    echo [ OK ] Environment created.
+    echo [ OK ] Virtual environment created.
 )
 
 call "%~dp0.venv\Scripts\activate"
 
 :: ── INSTALL / UPDATE DEPENDENCIES ──────────────────────────────────────────
-:: Hash check uses Python (already active) instead of PowerShell.
-:: This avoids a 300-600ms PowerShell cold-start on every launch.
+:: Hash check via Python (already active in the venv) — avoids any
+:: PowerShell cold-start overhead on every subsequent launch.
 if exist "requirements.txt" (
     set "REQ_HASH_FILE=.venv\.req_hash"
 
-    :: Write hash to temp file; Python avoids quote-escaping issues in FOR loops
     python -c "import hashlib; print(hashlib.md5(open('requirements.txt','rb').read()).hexdigest())" > "%TEMP%\pyfyve_hash.tmp" 2>nul
     set "CURRENT_HASH="
     if exist "%TEMP%\pyfyve_hash.tmp" set /p CURRENT_HASH=<"%TEMP%\pyfyve_hash.tmp"
