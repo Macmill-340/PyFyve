@@ -1,6 +1,6 @@
-<div align="center">
+<div style="text-align: center;">
 
-<img src="assets/banner.png" alt="PyFyve Banner" width="100%">
+<img src="assets/banner.png" alt="PyFyve Banner" width="1441">
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
@@ -52,14 +52,14 @@ The hint appears in the terminal, one character at a time
 
 ## System Requirements
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| OS | Windows 10 (build 1803+) | Windows 11 |
-| RAM | 8 GB | 16 GB |
-| Storage | 5 GB free | 8 GB free |
-| CPU | Any modern x86-64 | — |
-| GPU | Not required | Dedicated GPU (speeds up hints) |
-| Internet | Required on first run only | — |
+| Component | Minimum                    | Recommended                     |
+|-----------|----------------------------|---------------------------------|
+| OS        | Windows 10 (build 1803+)   | Windows 11                      |
+| RAM       | 8 GB                       | 16 GB                           |
+| Storage   | 5 GB free                  | 8 GB free                       |
+| CPU       | Any modern x86-64          | —                               |
+| GPU       | Not required               | Dedicated GPU (speeds up hints) |
+| Internet  | Required on first run only | —                               |
 
 **A note on AI hint speed:** PyFyve's hint model (a fine-tuned Qwen3 4B, ~2.5 GB) runs entirely on your machine through Ollama.
 
