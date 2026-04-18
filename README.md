@@ -1,6 +1,6 @@
-<div style="text-align: center;">
+<div align="center">
 
-<img src="assets/banner.png" alt="PyFyve Banner" width="1441">
+<img src="assets/banner.png" alt="PyFyve Banner" width=75%>
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
@@ -144,6 +144,8 @@ Lessons without a `task` field are treated as reading/intro lessons and advance 
 ## The AI Model
 
 The AI that powers PyFyve's hints is a custom fine-tuned model built for exactly one job: reading a Python error and responding with a Socratic 3-sentence hint. It cannot give you the answer, explain concepts freely, or write code for you. That's intentional.
+
+The model is available on HuggingFace: **[Fyve-AI](https://huggingface.co/Macmill/Fyve-AI)**
 
 The model runs entirely on your machine through Ollama. No internet connection is needed after the initial download.
 
