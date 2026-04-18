@@ -123,7 +123,7 @@ def main():
 
                         if result["status"] != "sec_error":
                             hint_text = None
-                            with console.status("Fetching AI hint...", spinner="dots", spinner_style="hint"):
+                            with console.status("[info]Fetching AI hint...[/info]", spinner="dots", spinner_style="hint"):
                                 hint_text = get_response(
                                     lesson_task=task,
                                     user_code=user_code,
