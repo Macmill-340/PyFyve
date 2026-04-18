@@ -6,6 +6,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-00FFFF.svg?style=flat-square)](https://ollama.com/)
 [![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)](#why-it-works-this-way)
+
 </div>
 
 ## PyFyve
@@ -49,7 +50,25 @@ The hint appears in the terminal, one character at a time
 
 ---
 
-## Setup
+## System Requirements
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| OS | Windows 10 (build 1803+) | Windows 11 |
+| RAM | 8 GB | 16 GB |
+| Storage | 5 GB free | 8 GB free |
+| CPU | Any modern x86-64 | — |
+| GPU | Not required | Dedicated GPU (speeds up hints) |
+| Internet | Required on first run only | — |
+
+**A note on AI hint speed:** PyFyve's hint model (a fine-tuned Qwen3 4B, ~2.5 GB) runs entirely on your machine through Ollama.
+
+- **With a dedicated GPU:** hints appear in roughly 8–12 seconds (generation + typewriter display).
+- **CPU-only (no dedicated GPU):** expect 20–45 seconds on a typical low-end laptop. Older or lower-spec machines may take up to 60 seconds.
+
+The hint is worth the wait — it's the part that actually teaches you something. The rest of the app (lesson loading, validation, editor) is instant regardless of hardware.
+
+---
 
 ## Setup
 
@@ -60,13 +79,14 @@ The hint appears in the terminal, one character at a time
 2. Double-click **`start.bat`** — that's it
 
 `start.bat` handles everything automatically. If you don't already have them, it will even install the prerequisites for you:
-- **Python 3.13** (Installed via Winget if missing)
-- **Ollama** (Installed automatically if missing)
+- **Python 3.13** — downloaded directly from python.org if not already installed
+- **Ollama** — installed automatically if missing
 - Creates a Python virtual environment and installs required libraries
 - Offers to download the AI model if it's not present (~2.6 GB, one-time)
 - Launches PyFyve
 
-On every run after the first, `start.bat` is lightning fast — it simply verifies your environment in a few seconds and launches straight into the lessons.
+On every run after the first, `start.bat` is lightning fast — it verifies your environment in a few seconds and launches straight into the lessons.
+
 > **Note:** Keep `start.bat` in the project root folder and always launch PyFyve by double-clicking it. Do not run `main.py` directly.
 
 ---
@@ -170,6 +190,20 @@ See [TODO.md](TODO.md) for the full list. Key items coming next:
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Acknowledgements
+
+PyFyve is built on the shoulders of several excellent open-source projects:
+
+- **[Notepad++](https://github.com/notepad-plus-plus/notepad-plus-plus)** — the bundled code editor used for writing lessons. A free, open-source text editor for Windows, maintained by Don Ho and contributors under the GPL licence.
+
+- **[Rich](https://github.com/Textualize/rich)** — the terminal formatting library that powers PyFyve's coloured output, styled prompts, and themed UI. Built by [Textualize](https://www.textualize.io/) and released under the MIT licence.
+
+- **[Ollama Python](https://github.com/ollama/ollama-python)** — the Python client library used to communicate with the locally-running Ollama server that hosts the AI model. Released under the MIT licence.
+
+- **[Ollama](https://ollama.com/)** — the local AI runtime that runs the fine-tuned hint model entirely on your machine. No data leaves your device.
 
 ---
 
