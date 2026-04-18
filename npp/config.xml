@@ -2,7 +2,7 @@
 <NotepadPlus>
     <GUIConfigs>
         <!-- 1. Smart Auto-Indent (2 = Advanced for Python blocks) -->
-        <GUIConfig name="MaintainIndent">2</GUIConfig>
+        <GUIConfig name="MaintainIndent">1</GUIConfig>
 
         <!-- 2. Auto-close brackets and quotes -->
         <GUIConfig name="auto-insert" parentheses="yes" brackets="yes" curlyBrackets="yes" quotes="yes" doubleQuotes="yes" htmlXmlTag="yes" />
@@ -16,7 +16,7 @@
         <!-- 5. Use 4 Spaces instead of Tabs (Crucial for Python) -->
         <GUIConfig name="TabSetting" replaceBySpace="yes" size="4" backspaceUnindent="yes" />
 
-        <!-- 6. Force Dark Mode UI (Blends perfectly with your PyFyve #2D2D2D terminal) -->
-        <GUIConfig name="DarkMode" enable="yes" colorTone="5" customColorTop="2105376" customColorMenuHotTrack="4539717" customColorActive="3684408" customColorMain="2105376" customColorError="176" customColorText="14737632" customColorDarkText="12632256" customColorDisabledText="8421504" customColorLinkText="65535" customColorEdge="6579300" customColorHotEdge="10197915" customColorDisabledEdge="4737096" enableWindowsMode="no" darkThemeName="DarkModeDefault.xml" darkToolBarIconSet="0" darkTbFluentColor="0" darkTbFluentCustomColor="7819795" darkTbFluentMono="no" darkTabIconSet="2" darkTabUseTheme="no" lightThemeName="" lightToolBarIconSet="4" lightTbFluentColor="0" lightTbFluentCustomColor="1905411" lightTbFluentMono="no" lightTabIconSet="0" lightTabUseTheme="yes" />
+        <!-- 6. Force Default Dark Mode (colorTone="0" is standard Black/Charcoal) -->
+        <GUIConfig name="DarkMode" enable="yes" colorTone="0" enableWindowsMode="no" darkThemeName="DarkModeDefault.xml" darkToolBarIconSet="0" darkTabIconSet="2" />
     </GUIConfigs>
 </NotepadPlus>
