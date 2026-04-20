@@ -26,9 +26,16 @@ def user_input(task, reset_file):
             if reset_file:
                 f.write(f"{code_separator}\n")
 
+    # Build an absolute path to npp relative to this file (src/user_code.py).
+    # src/ is one level below the project root, so we go up once to reach npp/.
+    # Using an absolute path ensures the editor launches correctly regardless of
+    # the working directory the process was started from.
+    _here    = os.path.dirname(os.path.abspath(__file__))
+    _npp_exe = os.path.abspath(os.path.join(_here, "..", "npp", "notepad++.exe"))
+
     try:
-        if os.path.exists("npp/notepad++.exe"):
-            subprocess.run(["npp/notepad++.exe", filename], check=True)
+        if os.path.exists(_npp_exe):
+            subprocess.run([_npp_exe, filename], check=True)
         else:
             console.print("[Note] Bundled editor not found — opening with Notepad.")
             subprocess.run(["notepad.exe", filename], check=True)
