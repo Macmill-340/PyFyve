@@ -4,6 +4,7 @@ import time
 import json
 from console import console
 
+MODEL_ID = "fyve-ai"
 
 def write_line(text, italic_sage=False):
     """Print one hint sentence with typewriter effect in Sage Leaf."""
@@ -167,10 +168,11 @@ Rules:
     for attempt in range(1, max_retries + 1):
         try:
             response = ollama.chat(
-                model="fyve-ai",
+                model=MODEL_ID,
                 messages=messages,
                 format="json",
                 options={"temperature": 0.2},
+                keep_alive=-1,   # Keep model in RAM for the whole session
                 think=False
             )
             full_data = json.loads(response['message']['content'])
