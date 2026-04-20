@@ -170,7 +170,6 @@ def get_response(lesson_task, user_code, raw_error, max_retries=3):
                 format="json",
                 options={
                     "temperature": 0.2,
-                    "num_predict": 1,
                     "num_thread": 4,
                     "num_ctx": 2048
                 },
