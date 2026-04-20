@@ -56,17 +56,25 @@ The hint appears in the terminal, one character at a time
 |-----------|----------------------------|---------------------------------|
 | OS        | Windows 10 (build 1803+)   | Windows 11                      |
 | RAM       | 8 GB                       | 16 GB                           |
-| Storage   | 5 GB free                  | 8 GB free                       |
-| CPU       | Any modern x86-64          | —                               |
+| Storage   | 7 GB free (model + app)    | 15 GB free                      |
+| CPU       | Any modern x86-64          | 6+ cores (speeds up model load) |
 | GPU       | Not required               | Dedicated GPU (speeds up hints) |
 | Internet  | Required on first run only | —                               |
 
-**A note on AI hint speed:** PyFyve's hint model (a fine-tuned Qwen3 4B, ~2.5 GB) runs entirely on your machine through Ollama.
+**A note on AI hint speed:** PyFyve's hint model (a fine-tuned Qwen3 4B, ~2.5 GB) runs entirely on your machine through Ollama. The first hint of each session requires loading the model into memory — this is the slow part. After that, the model stays loaded and subsequent hints are fast.
 
-- **With a dedicated GPU:** hints appear in roughly 8–12 seconds (generation + typewriter display).
-- **CPU-only (no dedicated GPU):** expect 20–45 seconds on a typical low-end laptop. Older or lower-spec machines may take up to 60 seconds.
+Measured on real hardware:
 
-The hint is worth the wait — it's the part that actually teaches you something. The rest of the app (lesson loading, validation, editor) is instant regardless of hardware.
+| Hardware                                            | First hint (cold load) | Subsequent hints |
+|-----------------------------------------------------|------------------------|------------------|
+| Dedicated GPU (RTX 3050)                            | ~10 seconds            | ~8–12 seconds    |
+| CPU-only, modern laptop (i5-13450HX, GPU disabled)  | ~85 seconds            | ~11 seconds      |
+| CPU-only, 8 GB RAM, 10 virtual processors (Hyper-V) | ~2 minutes             | ~17 seconds      |
+| CPU-only, 8 GB RAM, 2 virtual processors (Hyper-V)  | ~7 minutes             | ~55 seconds      |
+
+**Important:** Once the model is loaded, PyFyve now keeps it in memory for the entire session. You will only experience the long cold-load once per session start, not between lessons. If you close the terminal window instead of using option 2, Ollama will continue holding the model in memory. Run "ollama stop fyve-ai" in a terminal window to free it.
+
+**Hyper-V note:** Hyper-V significantly degrades LLM performance because it cannot pass AVX2/AVX512 CPU instructions directly to the guest. If you are testing in a VM, VMware Workstation will give substantially better results.
 
 ---
 
@@ -120,6 +128,7 @@ Each lesson is a JSON file in `lessons/`:
 ```json
 {
   "id": 1,
+  "author": "Macmill-340",
   "topic": "Variables & Assignment",
   "text": "A variable is a named container for a value...",
   "common_errors": "Writing 100 = score instead of score = 100.",
@@ -175,6 +184,9 @@ The model was trained on 555 examples of specific, well-defined Python errors. I
 
 **No hints for logic errors**
 The AI only fires when Python raises an actual exception. If your code runs without errors but produces the wrong output, validation fails but no hint is given.
+
+**AI hint speed on CPU-only machines**
+The first hint of each session takes 1–2 minutes on a modern laptop without a dedicated GPU while the model loads into memory. Subsequent hints within the same session take 10–55 seconds depending on hardware. Closing and reopening PyFyve triggers another cold load. A dedicated GPU reduces all of these times to under 12 seconds.
 
 ---
 
