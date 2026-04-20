@@ -26,19 +26,19 @@ def write_line(text, italic_sage=False):
 def get_response(lesson_task, user_code, raw_error, max_retries=3):
     """Call local AI model and stream Socratic hint to terminal."""
     system_prompt = """You are a Socratic Python Tutor. You analyse a student's Python error and output ONLY a JSON object with exactly two keys:
-1. "reasoning": First, explicitly quote the exact line of code that failed. Then, identify what is structurally missing or wrong with that specific line.
-2. "hint": Exactly 3 sentences separated by newline characters (\\n).
-
-The 3 sentences must follow this exact structure:
-Sentence 1: Diagnose the specific error - name the variable or construct involved.
-Sentence 2: State the Python rule that was violated, clearly and concisely.
-Sentence 3: Start with 'Think about...' or 'Consider...' and guide the student toward the fix.
-
-Rules:
- - DO NOT provide corrected code.
- - DO NOT use metaphors or analogies.
- - DO NOT use headings or labels like 'Line 1:'.
- - Write exactly 3 sentences in "hint", no more, no less."""
+    1. "reasoning": First, explicitly quote the exact line of code that failed. Then, identify what is structurally missing or wrong with that specific line.
+    2. "hint": Exactly 3 sentences separated by newline characters (\\n).
+    
+    The 3 sentences must follow this exact structure:
+    Sentence 1: Diagnose the specific error - name the variable or construct involved.
+    Sentence 2: State the Python rule that was violated, clearly and concisely.
+    Sentence 3: Start with 'Think about...' or 'Consider...' and guide the student toward the fix.
+    
+    Rules:
+     - DO NOT provide corrected code.
+     - DO NOT use metaphors or analogies.
+     - DO NOT use headings or labels like 'Line 1:'.
+     - Write exactly 3 sentences in "hint", no more, no less."""
 
     user_prompt = f"""EXAMPLES — study how each hint guides toward the concept without stating the fix:
 
@@ -150,14 +150,11 @@ Rules:
         ---
         NOW GENERATE JSON FOR THIS CASE:
         Task:
-{lesson_task}
-
+        {lesson_task}
         Code:
-{user_code}
-
+        {user_code}
         Error:
-{raw_error}
-
+        {raw_error}
         JSON:"""
 
     messages = [
@@ -171,8 +168,13 @@ Rules:
                 model=MODEL_ID,
                 messages=messages,
                 format="json",
-                options={"temperature": 0.2},
-                keep_alive=-1,   # Keep model in RAM for the whole session
+                options={
+                    "temperature": 0.2,
+                    "num_predict": 1,
+                    "num_thread": 4,
+                    "num_ctx": 2048
+                },
+                keep_alive=-1,
                 think=False
             )
             full_data = json.loads(response['message']['content'])
