@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<NotepadPlus>
+    <GUIConfigs>
+        <!-- 1. Smart Auto-Indent (1 = Advanced for Python blocks) -->
+        <GUIConfig name="MaintainIndent">1</GUIConfig>
+
+        <!-- 2. Auto-close brackets and quotes -->
+        <GUIConfig name="auto-insert" parentheses="yes" brackets="yes" curlyBrackets="yes" quotes="yes" doubleQuotes="yes" htmlXmlTag="yes" />
+
+        <!-- 3. Auto-Completion (Functions & Words popups) -->
+        <GUIConfig name="auto-completion" autoCAction="3" triggerFromNbChar="1" autoCIgnoreNumbers="yes" insertSelectedItemUseENTER="yes" insertSelectedItemUseTAB="yes" autoCBrief="no" funcParams="yes" />
+
+        <!-- 4. Default to Python (Internal Language ID 22) -->
+        <GUIConfig name="NewDocDefaultSettings" format="0" encoding="4" lang="22" codepage="-1" openAnsiAsUTF8="yes" addNewDocumentOnStartup="no" useContentAsTabName="no" />
+
+        <!-- 5. Use 4 Spaces instead of Tabs (Crucial for Python) -->
+        <GUIConfig name="TabSetting" replaceBySpace="yes" size="4" backspaceUnindent="yes" />
+
+        <!-- 6. Force Default Dark Mode (colorTone="0" is standard Black/Charcoal) -->
+        <GUIConfig name="DarkMode" enable="yes" colorTone="0" enableWindowsMode="no" darkThemeName="DarkModeDefault.xml" darkToolBarIconSet="0" darkTabIconSet="2" />
+    </GUIConfigs>
+</NotepadPlus>
