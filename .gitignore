@@ -16,7 +16,7 @@ version.txt
 .vscode/
 
 # User files
-/npp/
+npp/
 user_workspace.py
 user_progress.json
 
