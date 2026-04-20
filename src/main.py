@@ -2,7 +2,10 @@ import os
 import time
 import sys
 import glob
+import shutil
+import subprocess
 import urllib.parse
+from ai_response import MODEL_ID
 from ai_response import write_line
 from console import console, apply_terminal_theme, reset_terminal_theme, pyinput
 from validator_test import validate
@@ -32,6 +35,26 @@ def main():
 
     reset_file = True
     progress   = load_progress()
+
+    # Load the AI model into memory before showing the welcome screen.
+    # This is a blocking call — the app waits here deliberately so the user
+    # sees a clear status message rather than an unexplained delay later.
+    # On CPU-only machines this can take 1-2 minutes on first run of a session.
+    console.print("\n[ AI ] Loading model into memory...", style="info")
+    try:
+        import ollama as _ollama
+        _ollama.chat(
+            model=MODEL_ID,
+            messages=[{"role": "user", "content": "ready"}],
+            format="json",
+            options={"temperature": 0.2},
+            keep_alive=-1,
+            think=False
+        )
+        console.print("[ AI ] Model ready.\n", style="success")
+    except Exception:
+        console.print("[ AI ] Model unavailable — hints will be skipped.\n", style="warning")
+    time.sleep(1)
 
     console.print("\n Welcome to PyFyve\n", style="accent")
     console.print('''
@@ -144,8 +167,18 @@ def main():
                     reset_file = False
 
                 elif mode == "2":
-                    console.print("\nGoodbye!", style="accent")
-                    time.sleep(2)
+                    console.print("\nUnloading model from memory", style="info")
+                    # Unload model from RAM so Ollama doesn't hold ~2.5 GB
+                    # of memory after PyFyve closes.
+                    try:
+                        _ollama_exe = shutil.which("ollama")
+                        if _ollama_exe:
+                            subprocess.run([str(_ollama_exe), "stop", MODEL_ID], capture_output=True, timeout=5)
+                        console.print("\nGoodbye!", style="accent")
+                        time.sleep(1)
+                    except Exception:
+                        pass
+                    time.sleep(1)
                     sys.exit(0)
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
