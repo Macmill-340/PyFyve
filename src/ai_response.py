@@ -188,6 +188,7 @@ def get_response(lesson_task, user_code, raw_error, max_retries=3, is_init = Fal
                 return hint
             else:
                 console.print("[ AI ] Model ready.\n", style="success")
+                return None
 
         except Exception as e:
             if attempt < max_retries:

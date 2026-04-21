@@ -52,6 +52,7 @@ def main():
     )
     time.sleep(1)
 
+    clear_screen()
     console.print("\n Welcome to PyFyve\n", style="accent")
     console.print('''
 ██████╗ ██╗   ██╗███████╗██╗   ██╗██╗   ██╗███████╗
