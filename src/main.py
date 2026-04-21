@@ -80,7 +80,7 @@ def main():
             console.print("  🎉 You've completed all lessons! Great work!", style="success")
             console.print("=" * 60, style="separator")
             console.print("\nDo you want to start over?")
-            choice = pyinput("y(yes) or n(no)?: ")
+            choice = pyinput("Y/N: ")
             if choice.lower() in ("y", "yes"):
                 progress = 0
                 save_progress(progress)

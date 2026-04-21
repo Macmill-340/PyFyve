@@ -306,7 +306,7 @@ def check_for_model_update(exe):
         print(f"\n[ !! ] Model update available (v{remote_version}).")
 
     answer = input(
-        "       Download update now? (~2.6 GB, existing model will be replaced) [Y/n]: "
+        "       Download update now? (~2.6 GB, existing model will be replaced) [Y/N]: "
     ).strip().lower()
     if answer not in ("", "y", "yes"):
         print("[ .. ] Skipping update. Continuing with current model.")
