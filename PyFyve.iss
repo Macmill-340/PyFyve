@@ -55,7 +55,6 @@ Source: "*"; DestDir: "{app}"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-[Icons]
 ; Start Menu entry
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\assets\icon.ico"
 
@@ -94,9 +93,9 @@ begin
       'No   — keeps the model so reinstalling PyFyve is faster.',
       mbConfirmation, MB_YESNO) = IDYES then
     begin
-      // Unload from Ollama registry first, then delete the files
+      // Unload from Ollama registry first, then fully wipe the files
       Exec('cmd.exe', '/c ollama rm fyve-ai', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      DelTree(ExpandConstant('{app}\model'), True, True, True);
+      DelTree(ExpandConstant('{app}\model'), True, False, False);
     end;
   end;
 end;
