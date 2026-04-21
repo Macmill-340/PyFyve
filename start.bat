@@ -46,8 +46,8 @@ echo ===================================================
 ::     PYTHON_URL below.
 ::
 :: PYTHON_VER is used only for display. PYTHON_URL is the actual download target.
-set "PYTHON_VER=3.13.3"
-set "PYTHON_URL=https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe"
+set "PYTHON_VER=3.13"
+set "PYTHON_URL=https://www.python.org/ftp/python/3.13.13/python-3.13.13-amd64.exe"
 
 echo [ .. ] Verifying Python Environment...
 set "PY_CMD="
