@@ -40,7 +40,7 @@ def main():
     # This is a blocking call — the app waits here deliberately so the user
     # sees a clear status message rather than an unexplained delay later.
     # On CPU-only machines this can take 1-2 minutes on first run of a session.
-    console.print("\n[ AI ] Loading model into memory...", style="info")
+    console.print("\n[ AI ] Loading model into memory...(This can take more than 2 minutes.)", style="info")
     get_response(
         lesson_task=f"""Write an if statement that prints 'Yes' if x is greater than 5.""",
         user_code=f"""x = 10

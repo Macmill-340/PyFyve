@@ -193,7 +193,7 @@ def ensure_ollama_serving():
         print("       Please start Ollama from the Start Menu and try again.")
         sys.exit(1)
 
-    print("[ .. ] Waiting for Ollama to come online ", end="", flush=True)
+    print("[ .. ] Waiting for Ollama to come online...(This can take upto 2 minutes on first launch.)", end="", flush=True)
     for _ in range(OLLAMA_TIMEOUT):
         time.sleep(1)
         print(".", end="", flush=True)
