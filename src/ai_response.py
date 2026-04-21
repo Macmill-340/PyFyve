@@ -23,7 +23,7 @@ def write_line(text, italic_sage=False):
     sys.stdout.flush()
 
 
-def get_response(lesson_task, user_code, raw_error, max_retries=3):
+def get_response(lesson_task, user_code, raw_error, max_retries=3, is_init = False):
     """Call local AI model and stream Socratic hint to terminal."""
     system_prompt = """You are a Socratic Python Tutor. You analyse a student's Python error and output ONLY a JSON object with exactly two keys:
     1. "reasoning": First, explicitly quote the exact line of code that failed. Then, identify what is structurally missing or wrong with that specific line.
@@ -170,23 +170,28 @@ def get_response(lesson_task, user_code, raw_error, max_retries=3):
                 format="json",
                 options={
                     "temperature": 0.2,
+                    "num_predict": 1 if is_init else -1,
                     "num_thread": 4,
-                    "num_ctx": 2048
+                    "num_ctx": 4096
                 },
                 keep_alive=-1,
                 think=False
             )
-            full_data = json.loads(response['message']['content'])
-            reasoning = full_data.get("reasoning", "")
-            hint      = full_data.get("hint", "")
+            if not is_init:
+                full_data = json.loads(response['message']['content'])
+                reasoning = full_data.get("reasoning", "")
+                hint      = full_data.get("hint", "")
 
-            if not reasoning or not hint:
-                raise ValueError("Missing reasoning or hint keys")
+                if not reasoning or not hint:
+                    raise ValueError("Missing reasoning or hint keys")
 
-            return hint
+                return hint
+            else:
+                console.print("[ AI ] Model ready.\n", style="success")
 
         except Exception as e:
             if attempt < max_retries:
                 console.print(f"[Attempt {attempt} failed: {e}. Retrying...]", style="info")
             else:
-                console.print(f"[AI hint unavailable after {max_retries} attempts: {e}]", style="info")
+                console.print(f"[AI hint unavailable after {max_retries} attempts: {e}]", style="info") if not is_init else console.print(f"[AI model unavailable after {max_retries} attempts: {e}]. Hints will be skipped", style="info")
+    return None
