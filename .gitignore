@@ -11,6 +11,10 @@ model/
 Modelfile
 version.txt
 
+# Installer output
+installer_output/
+*.exe
+
 # IDE
 .idea/
 .vscode/
