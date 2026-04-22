@@ -36,7 +36,7 @@ SetupIconFile=assets\icon.ico
 ; Change this to wherever you want the output .exe written
 ; {src} = the folder this .iss file lives in
 OutputDir=installer_output
-OutputBaseFilename=PyFyve_Setup_v1.0
+OutputBaseFilename=PyFyve_Setup_v1.0.0
 
 SolidCompression=yes
 WizardStyle=slate
