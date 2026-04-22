@@ -27,10 +27,10 @@ def validate(result, rules, user_code):
                 console.print("❌ Task incomplete — one or more variables has the wrong type.", style="error")
                 return "Fail"
 
-            console.print("❌ Task incomplete — check the values assigned to your variables.", style="error")
+            console.print("❌ Task incomplete — check the values you assigned to your variables.", style="error")
             return "Fail"
 
-        console.print("❌ Task incomplete — not all required variables were found.", style="error")
+        console.print("❌ Task incomplete — I could not find all the required variables in your code.", style="error")
         return "Fail"
 
     if rules["type"] == "output_check":
@@ -72,12 +72,12 @@ def validate(result, rules, user_code):
                     return "Fail"
 
                 if not isinstance(user_variables[key], target_type):
-                    console.print("❌ Task incomplete — check that the value assigned is of the correct type.", style="error")
+                    console.print("❌ Task incomplete — check that the values you assigned are of the correct type.", style="error")
                     return "Fail"
             else:
                 return "Pass"
 
-        console.print("❌ Task incomplete — required variable not found.", style="error")
+        console.print("❌ Task incomplete — I could not find all the required variables in your code.", style="error")
         return "Fail"
 
     if rules["type"] == "source_check":
@@ -85,9 +85,9 @@ def validate(result, rules, user_code):
             return "Pass"
 
         console.print("❌ Task incomplete.", style="error")
-        console.print("It is suspected that you are not using the methods referenced in the lesson.", style="error")
+        console.print("It is detected that you might not be using the methods referenced in the lesson.", style="error")
         console.print("Avoid printing only the output if a particular method is required.", style="info")
-        console.print("If already using the correct method, avoid naming variables the same as Python keywords.", style="info")
+        console.print("If you are already using the correct method, avoid naming variables the same as Python keywords.", style="info")
         return "Fail"
 
     if rules["type"] == "collection_check":
@@ -104,32 +104,32 @@ def validate(result, rules, user_code):
 
                 if spec["type"] == "list":
                     if not isinstance(user_variables[var], list):
-                        console.print("❌ Task incomplete — check the type of your collection.", style="error")
+                        console.print("❌ Task incomplete — check the type of your lists.", style="error")
                         return "Fail"
                     if "size" in spec and len(user_variables[var]) != spec["size"]:
-                        console.print("❌ Task incomplete — your collection is not the required size.", style="error")
+                        console.print("❌ Task incomplete — One or more of your lists is not of the required size.", style="error")
                         return "Fail"
                     if "contains" in spec:
                         for item in spec["contains"]:
                             if item not in user_variables[var]:
-                                console.print("❌ Task incomplete — check the contents of your collection.", style="error")
+                                console.print("❌ Task incomplete — check the contents of your lists.", style="error")
                                 return "Fail"
 
                 elif spec["type"] == "dict":
                     if not isinstance(user_variables[var], dict):
-                        console.print("❌ Task incomplete — check the type of your collection.", style="error")
+                        console.print("❌ Task incomplete — check the type of your dictionary.", style="error")
                         return "Fail"
                     if "size" in spec and len(user_variables[var]) != spec["size"]:
-                        console.print("❌ Task incomplete — your collection is not the required size.", style="error")
+                        console.print("❌ Task incomplete — One or more of your dictionaries is not the required size.", style="error")
                         return "Fail"
                     if "contains" in spec:
                         if not spec["contains"].items() <= user_variables[var].items():
-                            console.print("❌ Task incomplete — check the key-value pairs in your dictionary.", style="error")
+                            console.print("❌ Task incomplete — check the key-value pairs in your dictionaries.", style="error")
                             return "Fail"
             else:
                 return "Pass"
 
-        console.print("❌ Task incomplete — not all required variables were found.", style="error")
+        console.print("❌ Task incomplete — I could not find all the required variables in your code.", style="error")
         return "Fail"
 
     console.print(f"❌ Unknown validation type: '{rules['type']}'. Check your lesson JSON.", style="error")

@@ -29,7 +29,7 @@ def main():
     lesson_files = sorted(glob.glob(os.path.join(LESSON_DIR, "*.json")))
 
     if not lesson_files:
-        console.print(f"No lessons found in '{LESSON_DIR}/'. Check your installation.", style="warning")
+        console.print(f"I cannot find any lessons in '{LESSON_DIR}/'. Check your installation.", style="warning")
         pyinput("Press Enter to exit...")
         sys.exit(1)
 
@@ -79,12 +79,12 @@ def main():
             console.print("\n" + "=" * 60, style="separator")
             console.print("  🎉 You've completed all lessons! Great work!", style="success")
             console.print("=" * 60, style="separator")
-            console.print("\nDo you want to start over?")
+            console.print("\nDo you want to start over? This will reset your progress.")
             choice = pyinput("Y/N: ")
             if choice.lower() in ("y", "yes"):
                 progress = 0
                 save_progress(progress)
-                console.print("\nStarting fresh...\n", style="info")
+                console.print("\nLet me reset your progress...\n", style="info")
                 time.sleep(2)
                 continue
             else:
@@ -96,13 +96,16 @@ def main():
         lesson = load_lessons(lesson_files, progress)
 
         if lesson is None:
-            console.print(f"Skipping corrupted lesson file: {lesson_files[progress]}", style="warning")
+            console.print(f"Looks like this lesson file might be corrupted: {lesson_files[progress]}.\nSkipping to the next one...", style="warning")
             progress += 1
             save_progress(progress)
             continue
 
+        first = True
         while True:
             if "task" in lesson:
+                if first:
+                    console.print("Try to solve the given task...I will try to help if you run into any errors.", style="accent")
                 mode = pyinput("\n[1] Write Code  [2] Quit\nChoose: ").strip()
 
                 if mode == "1":
@@ -122,6 +125,7 @@ def main():
                     for rule in lesson["validation"]:
                         passed = validate(result, rules=rule, user_code=user_code)
                         if passed.lower() == "fail":
+                            first = False
                             all_passed = False
                             break
 
@@ -130,35 +134,33 @@ def main():
                         progress  += 1
                         reset_file = True
                         save_progress(progress)
-                        console.print("\nCongratulations! You did it. Lesson complete.\n", style="success")
+                        console.print("\nCongratulations! You did it. Moving to the next lesson.\n", style="success")
                         pyinput("\nPress Enter to continue to the next lesson...")
                         break
 
                     if not result["is_standard"] and result.get("raw_err_str"):
                         query      = f"python code: {user_code.strip()} error: {result['raw_err_str']} "
                         search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
-                        console.print("\nThis is an uncommon error. Try searching for it:", style="info")
+                        console.print("\nThis is a non-standardized error. Try searching for it on google:", style="info")
                         console.print(search_url)
                         console.print("")
 
                         if result["status"] != "sec_error":
                             hint_text = None
-                            with console.status("[info]Fetching AI hint...[/info]", spinner="dots", spinner_style="hint"):
+                            with console.status("[info]Let me look into the error...[/info]", spinner="dots", spinner_style="hint"):
                                 hint_text = get_response(
                                     lesson_task=task,
                                     user_code=user_code,
                                     raw_error=result["raw_err_str"]
                                 )
                             if hint_text:
-                                console.print("\nAI RESPONSE:", style="accent")
-                                console.print("Hint:", style="info")
-
+                                console.print("Here's what happened:", style="info")
                                 hint_lines = [l.strip() for l in hint_text.split('\n') if l.strip()]
                                 for i, line in enumerate(hint_lines):
                                     # i == 2 is the 3rd sentence for the Socratic nudge
                                     write_line(line, italic_sage=(i == 2))
                             else:
-                                console.print("[AI hint unavailable — continuing without it.]", style="info")
+                                console.print("\nLooks like I am unable to help right now.\nTry restarting or continue without me.", style="info")
 
                     console.print("\nTry again.\n", style="info")
                     reset_file = False
