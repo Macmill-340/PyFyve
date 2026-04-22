@@ -7,8 +7,10 @@
     "task": "Create a variable named 'points' with the value 500. Then print exactly this on one line: Score: 500\nUse the variable in your print statement, not the number directly.",
     "validation": [
         {
-            "type": "source_check",
-            "required_syntax": "points"
+            "type": "variable_check",
+            "var_info": {
+                "points": 500
+            }
         },
         {
             "type": "output_check",
