@@ -8,7 +8,7 @@
 ;   3. Run the compiler — no other changes needed
 
 #define MyAppName "PyFyve"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "Macmill-340"
 #define MyAppURL "https://github.com/Macmill-340/PyFyve"
 #define MyAppExeName "start.bat"
