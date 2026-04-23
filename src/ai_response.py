@@ -6,6 +6,8 @@ from console import console
 
 MODEL_ID = "fyve-ai"
 
+
+
 def write_line(text, italic_sage=False):
     """Print one hint sentence with typewriter effect in Sage Leaf."""
     # Base Sage Leaf RGB: 160, 195, 145
@@ -146,6 +148,15 @@ def get_response(lesson_task, user_code, raw_error, max_retries=3, is_init = Fal
         Error:
         RecursionError on line: 3: maximum recursion depth exceeded
         {{"reasoning": "countdown() calls itself on every invocation with no condition to stop. I name the function and recursive call, explain that recursion requires a stopping condition, and guide toward what value of n should stop the calls.", "hint": "Your function countdown() on line 3 calls itself every time without any condition that would stop the calls.\\nIn Python, a recursive function must have a condition that stops it from calling itself — otherwise it runs until the program crashes.\\nThink about what value of n means the countdown is finished, and what you could check at the start of the function to stop it at that point."}}
+        
+        Example 10 (Missing Quotes around multi-word text):
+        Task:
+        Print the greeting Hello, World! to the screen.
+        Code:
+        print(Hello, World!)
+        Error:
+        Syntax Error in line 1: invalid syntax
+        {{"reasoning": "The text Hello, World! is inside the print statement without quotes. Python thinks Hello and World! are variables, and the comma is separating arguments. I must guide the student to wrap the entire phrase in quotes so Python treats it as a single string.", "hint": "The text inside your print() call on line 1 is missing the punctuation needed to mark it as text.\\nIn Python, any plain text you want to print must be surrounded by quotation marks so the computer knows it is a string, not a variable.\\nConsider what characters you need to place at the very beginning and very end of 'Hello, World!' to fix this."}}
 
         ---
         NOW GENERATE JSON FOR THIS CASE:
@@ -169,7 +180,9 @@ def get_response(lesson_task, user_code, raw_error, max_retries=3, is_init = Fal
                 messages=messages,
                 format="json",
                 options={
-                    "temperature": 0.2,
+                    "temperature": 0.7,
+                    "seed": 42,
+                    "top_k": 1,
                     "num_predict": 1 if is_init else -1,
                     "num_thread": 4,
                     "num_ctx": 4096
