@@ -101,11 +101,8 @@ def main():
             save_progress(progress)
             continue
 
-        first = True
         while True:
             if "task" in lesson:
-                if first:
-                    console.print("Try to solve the given task...I will try to help if you run into any errors.", style="accent")
                 mode = pyinput("\n[1] Write Code  [2] Quit\nChoose: ").strip()
 
                 if mode == "1":
@@ -125,7 +122,6 @@ def main():
                     for rule in lesson["validation"]:
                         passed = validate(result, rules=rule, user_code=user_code)
                         if passed.lower() == "fail":
-                            first = False
                             all_passed = False
                             break
 
