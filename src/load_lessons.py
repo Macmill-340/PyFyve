@@ -26,5 +26,6 @@ def load_lessons(lesson_files, progress):
     if "task" in loaded_lesson:
         console.print(f"YOUR TASK: {loaded_lesson['task']}", style="task", markup=False)
         print_separator()
+        console.print("Try to solve the given task...I will try to help if you run into any errors.", style="accent")
 
     return loaded_lesson
