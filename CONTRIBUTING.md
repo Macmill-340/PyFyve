@@ -86,6 +86,10 @@ __pycache__/
 .venv/
 .env
 
+# Installer
+installer_output/
+*.exe
+
 # OS
 .DS_Store
 Thumbs.db
