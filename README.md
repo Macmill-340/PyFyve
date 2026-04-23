@@ -2,15 +2,21 @@
 
 <img src="assets/banner.png" alt="PyFyve Banner" width=75%>
 
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-00FFFF.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-00FFFF.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
-[![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-00FFFF.svg?style=flat-square)](https://ollama.com/)
-[![Style: Socratic](https://img.shields.io/badge/method-Socratic-00FFFF.svg?style=flat-square)](#why-it-works-this-way)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-FFD43B.svg?style=flat-square&logo=python)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-CC2336.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
+[![AI: Local Ollama](https://img.shields.io/badge/AI-Ollama%20(Local)-FFFFFF.svg?style=flat-square)](https://ollama.com/)
+[![Style: Socratic](https://img.shields.io/badge/Method-Socratic-F5F5DC.svg?style=flat-square)](#why-it-works-this-way)
 
 </div>
 
 ## PyFyve
 ***A completely offline, free Python tutor that guides you toward the answer — without ever giving it to you.***
+
+<br>
+<div align="center">
+  <img src="assets/demo.gif" alt="PyFyve Workflow Demo" width="75%">
+</div>
+<br>
 
 ---
 
@@ -37,16 +43,33 @@ PyFyve uses the Socratic method. You get a diagnosis, a rule, and a nudge. You s
 ## How It Works
 
 ```
-You write code in the built-in Notepad++ editor
+Read & Code: You are given a lesson and a task.
         ↓
-Your code is run safely in a sandbox
+PyFyve automatically generates a `user_workspace.py` file and opens it in the bundled Notepad++ editor.
         ↓
-A validator checks if you completed the task correctly
+Sandbox Execution: When you save and close the editor, PyFyve compiles and runs your code in a secure AST-parsed sandbox to prevent malicious commands.
         ↓
-On failure: the error is classified and the AI generates a 3-line hint
+Validation: A strict validator checks if your variables, loops, and outputs match the lesson requirements.
         ↓
-The hint appears in the terminal, one character at a time
+Socratic AI: If the code crashes, the traceback is sent to the local Ollama server.
+        ↓
+The fine-tuned Qwen 3 4B model streams a 3-sentence Socratic hint back to your terminal.
+
 ```
+<br><br>
+<div align="center">
+
+<img src="assets/screen_lesson.png" alt="Lesson View" width="75%">
+<br>
+<b>1. Structured Lessons</b>
+
+<br><br><br>
+
+<img src="assets/screen_hint.png" alt="AI Hint View" width="75%">
+<br>
+<b>2. Socratic AI Hints</b>
+
+</div>
 
 ---
 
@@ -65,16 +88,13 @@ The hint appears in the terminal, one character at a time
 
 Measured on real hardware:
 
-| Hardware                                            | First hint (cold load) | Subsequent hints |
-|-----------------------------------------------------|------------------------|------------------|
-| Dedicated GPU (RTX 3050)                            | ~10 seconds            | ~8–12 seconds    |
-| CPU-only, modern laptop (i5-13450HX, GPU disabled)  | ~85 seconds            | ~11 seconds      |
-| CPU-only, 8 GB RAM, 10 virtual processors (Hyper-V) | ~2 minutes             | ~17 seconds      |
-| CPU-only, 8 GB RAM, 2 virtual processors (Hyper-V)  | ~7 minutes             | ~55 seconds      |
+| Hardware                                            | Model Loading        | Hints       |
+|-----------------------------------------------------|----------------------|-------------|
+| Dedicated GPU (RTX 3050)                            | ~3 seconds           | ~5 seconds  |
+| CPU-only, modern laptop (i5-13450HX, GPU disabled)  | ~55 seconds          | ~20 seconds |
+| CPU-only, 8 GB RAM, 10 virtual processors (Hyper-V) | ~1 minute 10 seconds | ~30 seconds |
 
 **Important:** Once the model is loaded, PyFyve now keeps it in memory for the entire session. You will only experience the long cold-load once per session start, not between lessons. If you close the terminal window instead of using option 2, Ollama will continue holding the model in memory. Run "ollama stop fyve-ai" in a terminal window to free it.
-
-**Hyper-V note:** Hyper-V significantly degrades LLM performance because it cannot pass AVX2/AVX512 CPU instructions directly to the guest. If you are testing in a VM, VMware Workstation will give substantially better results.
 
 ---
 
