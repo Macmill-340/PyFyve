@@ -50,7 +50,6 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - [ ] **3-strike rule** — after failing the same task 3 times, offer to reveal the solution.
 - [ ] **Multiple tasks in one lesson** — support for a `"tasks"` array so a lesson walks through 2-3 connected steps.
 - [ ] **Practice exercise mode** — separate mode with harder tasks, no tutorial text, and no progress saved.
-- [ ] **Better `source_check` failure messages** — more specific messaging that reflects the actual requirement that failed.
 - [ ] **Local session stats** — track attempts per lesson and most common errors.
 
 ---
@@ -82,6 +81,14 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - [ ] **Function testing** — run the student's function against multiple hidden test inputs.
 - [ ] **Automated lesson tests** — test suite for `validator_test.py`.
 
+---
+
+## Long-Term
+
+- [ ] **Teacher Mode (Custom Curriculums)** — add an option to load custom courses from a `.zip` or folder of JSON files so professors and bootcamp instructors can teach their own PyFyve modules.
+- [ ] **Integrated Terminal UI** — replace the external editor pop-up with a split-screen terminal interface using the `textual` library (editor on the left, Socratic chat/output on the right) for a seamless, cross-platform IDE experience.
+- [ ] **"Read the Traceback" Meta-Lessons** — create a new lesson type where the student doesn't write code, but instead must read a massive, scary Python traceback and identify the exact line number or variable causing the crash.
+- [ ] **Spaced Repetition (Surprise Tests)** — implement hardcoded "pop quiz" lessons that appear a few lessons after a complex topic, forcing the student to combine previous concepts (e.g., using a `for` loop inside a `function`) to statically prove comprehension without relying on AI text evaluation.
 ---
 
 ## Setup & Distribution
