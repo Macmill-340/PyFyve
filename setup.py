@@ -374,7 +374,7 @@ def ensure_model_registered(exe):
     if not os.path.exists(GGUF_FILE):
         print(f"\n[ !! ] AI model file not found in '{MODEL_DIR}/'.")
         answer = input(
-            f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/n]: "
+            f"       Download it now? ({GGUF_SIZE_HINT}, requires internet) [Y/N]: "
         ).strip().lower()
         if answer in ("", "y", "yes"):
             if not download_file(GGUF_URL, GGUF_FILE, "AI model"):
