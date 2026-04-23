@@ -33,6 +33,8 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - [ ] **File watcher** — auto-run code on Ctrl+S instead of requiring the student to close the editor.
 - [ ] **Visual progress** — persistent "Lesson X of Y" header during each lesson.
 - [ ] **Attempt tracking** — AI hints become slightly more detailed if the student fails 3+ times on the same task.
+- [ ] **Open Playground Mode** — A free-code REPL mode accessible from the main menu where students can test ideas without a specific lesson-task structure, but still receive Socratic AI hints on crash.
+- [ ] **Dedicated Progress Menu** — A dashboard accessible from the main menu showing completed lessons, current streak, and common errors made.
 
 ---
 
