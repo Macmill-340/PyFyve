@@ -22,6 +22,20 @@ def clear_screen():
     """Clear terminal and reapply PyFyve background theme."""
     apply_terminal_theme()
 
+def quit_app():
+    console.print("\nUnloading model from memory", style="info")
+    # Unload model from RAM so Ollama doesn't hold ~2.5 GB
+    # of memory after PyFyve closes.
+    try:
+        _ollama_exe = shutil.which("ollama")
+        if _ollama_exe:
+            subprocess.run([str(_ollama_exe), "stop", MODEL_ID], capture_output=True, timeout=5)
+        console.print("\nGoodbye!", style="accent")
+        time.sleep(1)
+    except Exception:
+        pass
+    time.sleep(1)
+    sys.exit(0)
 
 def main():
     clear_screen()
@@ -162,28 +176,19 @@ def main():
                     reset_file = False
 
                 elif mode == "2":
-                    console.print("\nUnloading model from memory", style="info")
-                    # Unload model from RAM so Ollama doesn't hold ~2.5 GB
-                    # of memory after PyFyve closes.
-                    try:
-                        _ollama_exe = shutil.which("ollama")
-                        if _ollama_exe:
-                            subprocess.run([str(_ollama_exe), "stop", MODEL_ID], capture_output=True, timeout=5)
-                        console.print("\nGoodbye!", style="accent")
-                        time.sleep(1)
-                    except Exception:
-                        pass
-                    time.sleep(1)
-                    sys.exit(0)
+                    quit_app()
                 else:
                     console.print("Please enter 1 or 2.", style="warning")
 
             else:
-                progress  += 1
-                reset_file = True
-                save_progress(progress)
-                pyinput("\nPress Enter to continue to the next lesson...")
-                break
+                mode = pyinput("\n[1] Continue  [2] Quit\nChoose: ").strip()
+                if mode == "1":
+                    progress  += 1
+                    reset_file = True
+                    save_progress(progress)
+                    break
+                else:
+                    quit_app()
 
 
 if __name__ == "__main__":
