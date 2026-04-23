@@ -4,16 +4,16 @@ from rich.console import Console
 from rich.theme import Theme
 
 pyfyve_theme = Theme({
-    "default":    "#E0E0E0",        # Soft grey base text
-    "accent":     "bold #F5F5DC",   # Antique Parchment (Logo & Headers)
+    "default":    "#E0E0E0",        # Soft gray base text
+    "accent":     "bold #F5F5DC",   # Logo & Headers
     "success":    "bold green",     # Standard green for "Correct"
-    "warning":    "#E9AF58",        # Harvest Ochre (The "Important/Caution" color)
+    "warning":    "#E9AF58",        # Important/Caution
     "limitation": "italic #E9AF58", # Specifically for limitation messages
     "error":      "bold #E84118",   # Deep red for crashes
     "info":       "#F5F5DC",        # Subdued metadata
     "prompt":     "bold #F5F5DC",   # Matches Logo for the input cursor
-    "task":       "bold #CD736E",   # Dusty Rosewood for instructions
-    "hint":       "#F5F5DC",        # Sage (AI Advice)
+    "task":       "bold #CD736E",   # Instructions
+    "hint":       "#F5F5DC",        # AI Advice
     "separator":  "#F5F5DC",        # Subtle division lines
 })
 
@@ -26,7 +26,7 @@ def apply_terminal_theme():
 
 
 def reset_terminal_theme():
-    """Restore original terminal colours on exit."""
+    """Restore original terminal colors on exit."""
     sys.stdout.write("\033]110\007\033]111\007\033[0m\033[2J\033[H")
     sys.stdout.flush()
 
