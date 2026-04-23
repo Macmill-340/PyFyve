@@ -49,7 +49,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; Excludes: git history, venv, pycache, user files, model files (downloaded at runtime),
 ; and the installer output folder itself.
 Source: "*"; DestDir: "{app}"; \
-    Excludes: ".git\*,.venv\*,__pycache__\*,user_progress.json,user_workspace.py,model\*,installer_output\*,*.iss"; \
+    Excludes: ".git\*,.venv\*,__pycache__\*,user_progress.json,user_workspace.py,model\*,installer_output\*,*.iss,*.gif,*.png"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
