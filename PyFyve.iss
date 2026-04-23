@@ -4,8 +4,7 @@
 ;
 ; Before compiling:
 ;   1. Put your icon at assets\icon.ico
-;   2. Set OutputDir below to wherever you want the final .exe
-;   3. Run the compiler — no other changes needed
+;   2. Run the compiler — no other changes needed
 
 #define MyAppName "PyFyve"
 #define MyAppVersion "1.0.0"
@@ -33,11 +32,9 @@ LicenseFile=LICENSE.md
 InfoBeforeFile=assets\installer_info.rtf
 SetupIconFile=assets\icon.ico
 
-; Change this to wherever you want the output .exe written
-; {src} = the folder this .iss file lives in
+; installer_output\ is gitignored — the compiled .exe lands here
 OutputDir=installer_output
 OutputBaseFilename=PyFyve_Setup_v1.0.0
-
 SolidCompression=yes
 WizardStyle=slate
 
@@ -48,8 +45,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; All paths relative to the project root where this .iss file lives
-; Excludes: git history, venv, pycache, and user-generated runtime files
+; All paths relative to the project root where this .iss file lives.
+; Excludes: git history, venv, pycache, user files, model files (downloaded at runtime),
+; and the installer output folder itself.
 Source: "*"; DestDir: "{app}"; \
     Excludes: ".git\*,.venv\*,__pycache__\*,user_progress.json,user_workspace.py,model\*,installer_output\*,*.iss"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
@@ -57,27 +55,25 @@ Source: "*"; DestDir: "{app}"; \
 [Icons]
 ; Start Menu entry
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\assets\icon.ico"
-
 ; Desktop shortcut (optional, unchecked by default)
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon; IconFilename: "{app}\assets\icon.ico"
-
 ; Uninstaller in Start Menu
 Name: "{autoprograms}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]
-; Offer to launch immediately after install
+; Offer to launch immediately after install completes
 Filename: "{app}\{#MyAppExeName}"; \
     Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; \
     Flags: shellexec postinstall skipifsilent; \
     WorkingDir: "{app}"
 
 [UninstallDelete]
-; Clean up files generated during normal use that the uninstaller won't catch
+; Remove files generated during normal use that the uninstaller won't catch automatically.
+; model\ is handled by the [Code] section below (user has a choice).
 Type: filesandordirs; Name: "{app}\.venv"
 Type: filesandordirs; Name: "{app}\src\__pycache__"
 Type: files;          Name: "{app}\user_progress.json"
 Type: files;          Name: "{app}\user_workspace.py"
-; model\ is handled by the prompt in [Code] below
 Type: dirifempty;     Name: "{app}"
 
 [Code]
@@ -87,15 +83,29 @@ var
 begin
   if CurUninstallStep = usUninstall then
   begin
+    // Always deregister the model from Ollama.
+    //
+    // 'ollama rm fyve-ai' does two things:
+    //   1. Removes the model from Ollama's registry.
+    //   2. Deletes Ollama's internal blob copy (~2.5 GB in ~/.ollama/models/).
+    //
+    // This runs unconditionally so no ghost model is left in Ollama after
+    // PyFyve is removed. The source GGUF in {app}\model\ is handled separately
+    // below — if the user keeps those files, reinstalling PyFyve re-registers
+    // the model from them with no internet download required.
+    Exec('cmd.exe', '/c ollama rm fyve-ai', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+    // Ask separately about the source GGUF files PyFyve downloaded.
+    // These are independent of Ollama's internal copy and take up ~2.6 GB.
+    // Keeping them makes reinstalling PyFyve faster (no re-download needed).
     if MsgBox(
-      'Do you also want to delete the downloaded AI model?' + #13#10#13#10 +
-      'Yes  — removes the model (~2.5 GB freed).' + #13#10 +
-      'No   — keeps the model so reinstalling PyFyve is faster.',
+      'Do you also want to delete PyFyve''s downloaded model files?' + #13#10#13#10 +
+      'Yes  — deletes the source model files (~2.6 GB freed).' + #13#10 +
+      'No   — keeps them so reinstalling PyFyve requires no re-download.',
       mbConfirmation, MB_YESNO) = IDYES then
     begin
-      // Unload from Ollama registry first, then fully wipe the files
-      Exec('cmd.exe', '/c ollama rm fyve-ai', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      DelTree(ExpandConstant('{app}\model'), True, False, False);
+      // IsDir=True, DeleteFiles=True, DeleteSubDirs=True — wipes everything inside model\
+      DelTree(ExpandConstant('{app}\model'), True, True, True);
     end;
   end;
 end;
