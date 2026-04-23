@@ -12,6 +12,18 @@ Every feature, lesson, and code change should be evaluated against this. If a ch
 
 ---
 
+## A Note on AI-Generated Code
+
+You are welcome to use AI assistants (Copilot, Claude, ChatGPT) to help write your pull requests, but **you must fully understand every line of code you submit.**
+
+This codebase relies on a strict, deterministic state machine and a highly specific AST-parsing sandbox. AI models often try to "helpfully" over-engineer these systems, refactor them into non-deterministic loops, or introduce subtle bugs that are a nightmare to debug. 
+
+If you use AI to "vibe-code" a feature without understanding the underlying architecture, it might break the app. If you submit a PR containing AI-generated code that you cannot explain or debug yourself, it will be rejected. 
+
+If an AI wrote it, you still own it. Test it thoroughly.
+
+---
+
 ## Getting Started
 
 1. Fork the repository
