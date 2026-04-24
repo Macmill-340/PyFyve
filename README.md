@@ -178,6 +178,8 @@ The model is available on HuggingFace: **[Fyve-AI](https://huggingface.co/Macmil
 
 The model runs entirely on your machine through Ollama. No internet connection is needed after the initial download.
 
+**The model weights will be open-sourced soon along with the dataset used for training the model.**
+
 ---
 
 ## Limitations
