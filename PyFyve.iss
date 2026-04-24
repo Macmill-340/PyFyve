@@ -28,7 +28,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 DisableProgramGroupPage=yes
 
 ; Paths are relative to this .iss file (project root)
-LicenseFile=LICENSE.md
+LicenseFile=LICENSE
 InfoBeforeFile=assets\installer_info.rtf
 SetupIconFile=assets\icon.ico
 
@@ -49,7 +49,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; Excludes: git history, venv, pycache, user files, model files (downloaded at runtime),
 ; and the installer output folder itself.
 Source: "*"; DestDir: "{app}"; \
-    Excludes: ".git\*,.venv\*,__pycache__\*,user_progress.json,user_workspace.py,model\*,installer_output\*,*.iss,*.gif,*.png"; \
+    Excludes: ".git\*,.venv\*,__pycache__\*,user_progress.json,user_workspace.py,model\*,installer_output\*,*.iss,*.gif,*.png,*.gitignore,*.md"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
