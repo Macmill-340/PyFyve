@@ -81,6 +81,7 @@ def main():
     console.print("  ⚠  BEFORE YOU START", style="warning")
     console.print("=" * 60, style="separator")
     console.print("  - Windows only — Linux/Mac not yet supported.", style="limitation")
+    console.print("  - The lessons are placeholders The included lessons cover the basic curriculum structure and are functional, but they are not the final curriculum.\nA more comprehensive set of lessons is in development.", style="limitation")
     console.print("  - Infinite loops will freeze the app. Avoid while True.", style="limitation")
     console.print("  - input() is not supported in lessons.", style="limitation")
     console.print("  - AI handles common syntax and runtime errors best.", style="limitation")
