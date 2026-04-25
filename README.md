@@ -22,11 +22,13 @@
 
 ## What It Does
 
-PyFyve gives beginners a step-by-step Python curriculum with a built-in code editor. When you make a mistake, a locally-running AI model looks at your error and responds with exactly three sentences:
+PyFyve gives beginners a step-by-step Python curriculum with a bundled editor for writing lesson code. For many non-standard Python errors, a locally-running AI model returns a three-sentence socratic hint:
 
 1. What specifically went wrong in your code
 2. Which Python rule you violated
 3. A question that points you in the right direction — without telling you the fix
+
+Common beginner errors are handled by built-in messages.
 
 No internet required once it's set up. No subscriptions. No data leaves your machine.
 
@@ -47,7 +49,7 @@ Read & Code: You are given a lesson and a task.
         ↓
 PyFyve automatically generates a `user_workspace.py` file and opens it in the bundled Notepad++ editor.
         ↓
-Sandbox Execution: When you save and close the editor, PyFyve compiles and runs your code in a secure AST-parsed sandbox to prevent malicious commands.
+Sandbox Execution: When you save and close the editor, PyFyve compiles and runs your code in a restricted execution environment that uses AST checks and a whitelist of allowed builtins to block common dangerous imports and functions.
         ↓
 Validation: A strict validator checks if your variables, loops, and outputs match the lesson requirements.
         ↓
@@ -98,24 +100,52 @@ Measured on real hardware:
 
 ---
 
-## Setup
+## Getting Started
+> Windows only. Linux and Mac are not supported in this version.
 
-> **Windows only.** Linux and Mac are not supported in this version.
+**There are two ways to use PyFyve depending on whether you want to install the app or run it from source.**
 
-**Steps:**
-1. Download or clone this repository
-2. Double-click **`start.bat`** — that's it
+## Option 1: Install from Releases (recommended for most users)
+If you just want to use PyFyve, this is the easiest option.
 
-`start.bat` handles everything automatically. If you don't already have them, it will even install the prerequisites for you:
-- **Python 3.13** — downloaded directly from python.org if not already installed
-- **Ollama** — installed automatically if missing
-- Creates a Python virtual environment and installs required libraries
-- Offers to download the AI model if it's not present (~2.6 GB, one-time)
-- Launches PyFyve
+### Steps:
 
-On every run after the first, `start.bat` is lightning fast — it verifies your environment in a few seconds and launches straight into the lessons.
+1. Go to the Releases page
+2. Download the Windows installer .exe
+3. Run the installer
+4. Launch PyFyve from your Desktop shortcut or Start Menu
 
-> **Note:** Keep `start.bat` in the project root folder and always launch PyFyve by double-clicking it. Do not run `main.py` directly.
+This option is intended for normal users who want the app installed like a standard Windows program.
+
+## Option 2: Run from Source (for developers / repository clones)
+If you cloned or downloaded this repository, launch PyFyve from the project folder.
+
+### Steps:
+
+1. Clone or download this repository
+2. Keep the project folder structure intact
+3. Double-click start.bat from the project root
+4. **start.bat** attempts to automate the first-run setup for the source version:
+<ul>
+<li>checks for Python 3.13
+<li>creates a Python virtual environment
+<li>installs required libraries
+<li>checks for Ollama
+<li>offers to download the AI model if needed (~2.6 GB, one-time)
+<li>launches PyFyve
+</ul>
+
+On later runs, start.bat usually only re-checks what is needed and then launches the app.
+
+>**Important:** start.bat is for running PyFyve from source.
+If you installed PyFyve using the Windows installer from the Releases page, launch it from your Desktop shortcut or Start Menu instead.
+
+>**Note:** If you are running from source, keep **start.bat** in the project root folder and do not run src/main.py directly.
+
+## Internet Requirement
+PyFyve is designed to run offline **after setup**, but an internet connection may be needed during first-time installation or model download.
+
+After the initial setup is complete, the app and AI hints run locally on your machine through Ollama.
 
 ---
 
@@ -123,8 +153,11 @@ On every run after the first, `start.bat` is lightning fast — it verifies your
 
 ```
 PyFyve/
-├── start.bat               ← Launch PyFyve by double-clicking this
-├── setup.py                ← Environment checks, Ollama + model setup
+├── assets               ← Launch PyFyve by double-clicking this
+├── installer_output        ← Environment checks, Ollama + model setup
+├── lessons/                ← Lesson JSON files (numbered, e.g. 1_0-intro.json)
+├── model/                  ← AI model files — downloaded on first run (git-ignored)
+├── npp/                    ← Bundled Notepad++ editor (Windows)
 ├── requirements.txt
 ├── src/                    ← All Python source files
 │   ├── main.py             ← Lesson loop and entry point
@@ -134,9 +167,7 @@ PyFyve/
 │   ├── user_code.py        ← Editor integration, sandboxed execution
 │   ├── load_lessons.py     ← Load and display lesson JSON
 │   └── load_progress.py    ← Save and restore lesson progress
-├── lessons/                ← Lesson JSON files (numbered, e.g. 01.0_intro.json)
-├── model/                  ← AI model files — downloaded on first run (git-ignored)
-└── npp/                    ← Bundled Notepad++ editor (Windows)
+
 ```
 
 ---

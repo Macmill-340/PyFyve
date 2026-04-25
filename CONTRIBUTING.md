@@ -113,7 +113,7 @@ The GGUF model file is ~2.6 GB and must not go in git. It is distributed via the
 
 ## Adding Lessons
 
-Lessons live in `lessons/` as numbered JSON files. Use float numbering (`01.0`, `02.0`, `02.5`) so you can insert lessons between existing ones without renaming everything.
+Lessons live in `lessons/` as numbered JSON files. Use this convention (`1_0`, `2_0`, `3_0`) so you can insert lessons between existing ones without renaming everything.
 
 Every lesson must have:
 - A single, clearly stated `task`

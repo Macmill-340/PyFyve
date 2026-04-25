@@ -6,7 +6,7 @@ Items marked ✅ are done. Everything else is planned or in progress.
 
 ## Safety & Sandboxing
 
-- ✅ Code runs in a sandbox — it cannot touch the file system or run system commands
+- ✅ Code runs in a restricted execution environment with AST checks and limited builtins; common filesystem and system-command paths are blocked.
 - ✅ Forbidden functions (`eval`, `exec`, `open`, `__import__`) blocked before running
 - ✅ Forbidden imports (`os`, `sys`, `subprocess`, etc.) blocked via AST check
 - ✅ Output captured cleanly via `redirect_stdout` without affecting app output
@@ -72,7 +72,7 @@ Items marked ✅ are done. Everything else is planned or in progress.
 - ✅ Validator supports: `variable_check`, `output_check`, `type_check`, `source_check`, `collection_check`
 - ✅ Multiple validation rules per lesson (all must pass)
 - ✅ Type mismatch detection — tells the student when they used the wrong data type
-- ✅ Float-numbered lesson files so new lessons insert anywhere without renaming
+- ✅ Underscored naming of lesson files so new lessons insert anywhere without renaming
 - ✅ Lessons without a `task` field auto-advance (reading/intro lessons)
 - ✅ **Hello World lesson** — the very first lesson should be a simple `print("Hello, World!")` task.
 - [ ] **Full beginner curriculum** — While Loops, Functions, Dictionaries, String Methods, and more.
